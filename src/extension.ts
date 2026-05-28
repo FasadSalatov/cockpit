@@ -193,6 +193,31 @@ function postToMain(msg: HostToWebview) {
   panel?.webview.postMessage(msg)
   bridge?.observeHostToWebview(msg, sessionId)
 }
+
+async function bridgeClaim(otp: string): Promise<{ ok: boolean; message?: string }> {
+  if (!bridge) return { ok: false, message: 'bridge not initialised' }
+  const label = vscode.workspace.workspaceFolders?.[0]?.name
+  try {
+    const res = await fetch('https://unyly.org/api/cockpit/pair/claim', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ otp: otp.trim(), label }),
+    })
+    const json = (await res.json().catch(() => ({}))) as { pairKey?: string; error?: string }
+    if (!res.ok || !json.pairKey) {
+      return { ok: false, message: json.error ?? `HTTP ${res.status}` }
+    }
+    await bridge.setPairKey(json.pairKey, label)
+    return { ok: true }
+  } catch (e) {
+    return { ok: false, message: e instanceof Error ? e.message : String(e) }
+  }
+}
+
+function broadcastBridgeStatus() {
+  if (!bridge) return
+  postToAll({ type: 'bridgeStatus', payload: bridge.getStatus() })
+}
 function postToSidebar(msg: HostToWebview) {
   sidebarView?.webview.postMessage(msg)
 }
@@ -635,29 +660,13 @@ export function activate(context: vscode.ExtensionContext) {
       validateInput: (v) => (/^\d{6}$/.test(v.trim()) ? undefined : 'Need 6 digits'),
     })
     if (!otp) return
-    try {
-      const res = await fetch('https://unyly.org/api/cockpit/pair/claim', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({
-          otp: otp.trim(),
-          label: vscode.workspace.workspaceFolders?.[0]?.name,
-        }),
-      })
-      const json = (await res.json().catch(() => ({}))) as { pairKey?: string; error?: string }
-      if (!res.ok || !json.pairKey) {
-        vscode.window.showErrorMessage(
-          `Cockpit Mobile · pair failed: ${json.error ?? res.status}`,
-        )
-        return
-      }
-      await bridge.setPairKey(json.pairKey)
-      vscode.window.showInformationMessage('🦈 Cockpit Mobile paired ✓')
-    } catch (e) {
-      vscode.window.showErrorMessage(
-        `Cockpit Mobile · pair error: ${e instanceof Error ? e.message : String(e)}`,
-      )
+    const res = await bridgeClaim(otp)
+    if (!res.ok) {
+      vscode.window.showErrorMessage(`Cockpit Mobile · pair failed: ${res.message ?? ''}`)
+      return
     }
+    vscode.window.showInformationMessage('🦈 Cockpit Mobile paired ✓')
+    broadcastBridgeStatus()
   })
 
   const bridgeRevoke = vscode.commands.registerCommand('cockpit.bridge.revoke', async () => {
@@ -670,6 +679,7 @@ export function activate(context: vscode.ExtensionContext) {
     if (pick !== 'Revoke') return
     await bridge.revoke()
     vscode.window.showInformationMessage('Cockpit Mobile pairing revoked.')
+    broadcastBridgeStatus()
   })
 
   context.subscriptions.push(
@@ -766,6 +776,7 @@ async function sendReady(context: vscode.ExtensionContext, view: 'main' | 'sideb
       view,
       settings: getSettings(context),
       achievements: context.globalState.get<string[]>(ACH_KEY) ?? [],
+      bridge: bridge?.getStatus(),
     },
   }
   if (view === 'main') postToMain(msg)
@@ -979,6 +990,20 @@ async function handleMessage(
       break
     case 'log':
       console.log('[cockpit]', msg.payload.message)
+      break
+    case 'bridgeQueryStatus':
+      broadcastBridgeStatus()
+      break
+    case 'bridgePair': {
+      const res = await bridgeClaim(msg.payload.otp)
+      postToSettings({ type: 'bridgeResult', payload: res })
+      if (res.ok) broadcastBridgeStatus()
+      break
+    }
+    case 'bridgeRevoke':
+      await bridge?.revoke()
+      postToSettings({ type: 'bridgeResult', payload: { ok: true } })
+      broadcastBridgeStatus()
       break
   }
 }

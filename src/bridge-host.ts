@@ -8,6 +8,8 @@ import type { AnyMessage, ServerEvent } from './bridge-protocol'
 const BRIDGE_PAIR_KEY = 'cockpit.bridge.pairKey'
 const BRIDGE_INSTANCE_ID = 'cockpit.bridge.instanceId'
 const BRIDGE_HUB_URL_KEY = 'cockpit.bridge.hubUrl'
+const BRIDGE_PAIRED_AT_KEY = 'cockpit.bridge.pairedAt'
+const BRIDGE_PAIR_LABEL_KEY = 'cockpit.bridge.pairLabel'
 const DEFAULT_HUB = 'wss://unyly.org/cockpit/ws'
 
 const RECONNECT_BACKOFF_MS = [1_000, 2_000, 5_000, 10_000, 30_000]
@@ -97,9 +99,24 @@ export class BridgeHost implements vscode.Disposable {
     return this.instanceId
   }
 
+  getStatus(): { paired: boolean; instanceId: string; pairedAt?: number; pairLabel?: string } {
+    const pairedAt = this.context.globalState.get<number>(BRIDGE_PAIRED_AT_KEY)
+    const pairLabel = this.context.globalState.get<string>(BRIDGE_PAIR_LABEL_KEY)
+    return {
+      paired: Boolean(this.pairKey),
+      instanceId: this.instanceId,
+      pairedAt: pairedAt ?? undefined,
+      pairLabel: pairLabel ?? undefined,
+    }
+  }
+
   /** Cockpit Settings UI calls this after a successful /pair/claim. */
-  async setPairKey(pairKey: string): Promise<void> {
+  async setPairKey(pairKey: string, label?: string): Promise<void> {
     await this.context.secrets.store(BRIDGE_PAIR_KEY, pairKey)
+    await this.context.globalState.update(BRIDGE_PAIRED_AT_KEY, Date.now())
+    if (label !== undefined) {
+      await this.context.globalState.update(BRIDGE_PAIR_LABEL_KEY, label)
+    }
     this.pairKey = pairKey
     this.disconnect()
     this.connect()
@@ -107,6 +124,8 @@ export class BridgeHost implements vscode.Disposable {
 
   async revoke(): Promise<void> {
     await this.context.secrets.delete(BRIDGE_PAIR_KEY)
+    await this.context.globalState.update(BRIDGE_PAIRED_AT_KEY, undefined)
+    await this.context.globalState.update(BRIDGE_PAIR_LABEL_KEY, undefined)
     this.pairKey = null
     this.disconnect()
   }
