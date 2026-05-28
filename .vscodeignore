@@ -1,0 +1,15 @@
+.vscode/**
+src/**
+webview/**
+scripts/**
+themes/_contributes.json
+node_modules/.bin/**
+**/*.ts
+**/*.tsx
+**/*.map
+**/tsconfig.json
+esbuild.js
+.npmrc
+.prettierrc
+.gitignore
+**/*.vsix

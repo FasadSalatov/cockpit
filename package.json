@@ -1,0 +1,234 @@
+{
+  "name": "cockpit",
+  "displayName": "Cockpit — Claude AI for VS Code",
+  "description": "Полноэкранный кокпит для работы с Claude через подписку: чат + правки кода с inline-diff, история сессий, темы, MCP, Tab-автодополнения, Run Tests & Fix, AI Find & Replace, Share via Gist. Часть Unyly.",
+  "version": "0.0.26",
+  "publisher": "unyly",
+  "license": "MIT",
+  "icon": "resources/icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/FasadSalatov/cockpit.git"
+  },
+  "homepage": "https://unyly.org/cockpit",
+  "bugs": {
+    "url": "https://github.com/FasadSalatov/cockpit/issues"
+  },
+  "keywords": [
+    "ai",
+    "claude",
+    "anthropic",
+    "claude-code",
+    "agent",
+    "ai-agent",
+    "coding-assistant",
+    "copilot",
+    "chat",
+    "autocomplete",
+    "unyly"
+  ],
+  "categories": [
+    "AI",
+    "Chat",
+    "Programming Languages",
+    "Other"
+  ],
+  "galleryBanner": {
+    "color": "#1a1a2e",
+    "theme": "dark"
+  },
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "main": "./out/extension.js",
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "cockpit.open",
+        "title": "Cockpit: Open",
+        "category": "Cockpit"
+      },
+      {
+        "command": "cockpit.setToken",
+        "title": "Cockpit: Set Token",
+        "category": "Cockpit"
+      },
+      {
+        "command": "cockpit.askAboutSelection",
+        "title": "Cockpit: Спросить про выделение",
+        "category": "Cockpit"
+      },
+      {
+        "command": "cockpit.quickAsk",
+        "title": "Cockpit: Быстрый вопрос",
+        "category": "Cockpit"
+      },
+      {
+        "command": "cockpit.toggleCompletions",
+        "title": "Cockpit: Toggle Inline Completions",
+        "category": "Cockpit"
+      },
+      {
+        "command": "cockpit.explainInline",
+        "title": "Cockpit: Объяснить выделение (inline)",
+        "category": "Cockpit"
+      },
+      {
+        "command": "cockpit.fixWithCockpit",
+        "title": "Cockpit: Fix with Cockpit",
+        "category": "Cockpit"
+      },
+      {
+        "command": "cockpit.runTestsAndFix",
+        "title": "Cockpit: Run Tests & Fix",
+        "category": "Cockpit"
+      },
+      {
+        "command": "cockpit.aiFindReplace",
+        "title": "Cockpit: AI Find & Replace",
+        "category": "Cockpit"
+      },
+      {
+        "command": "cockpit.shareSession",
+        "title": "Cockpit: Share Session (Gist)",
+        "category": "Cockpit"
+      },
+      {
+        "command": "cockpit.openSettings",
+        "title": "Cockpit: Open Settings",
+        "category": "Cockpit"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "cockpit.askAboutSelection",
+          "when": "editorHasSelection",
+          "group": "cockpit@1"
+        },
+        {
+          "command": "cockpit.explainInline",
+          "when": "editorHasSelection",
+          "group": "cockpit@2"
+        }
+      ]
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "cockpit",
+          "title": "Cockpit",
+          "icon": "resources/cockpit.svg"
+        }
+      ]
+    },
+    "views": {
+      "cockpit": [
+        {
+          "id": "cockpit.history",
+          "name": "История",
+          "type": "webview"
+        }
+      ]
+    },
+    "keybindings": [
+      {
+        "command": "cockpit.open",
+        "key": "cmd+shift+k",
+        "mac": "cmd+shift+k"
+      },
+      {
+        "command": "cockpit.quickAsk",
+        "key": "cmd+shift+j",
+        "mac": "cmd+shift+j"
+      },
+      {
+        "command": "cockpit.explainInline",
+        "key": "cmd+shift+e",
+        "mac": "cmd+shift+e",
+        "when": "editorHasSelection"
+      }
+    ],
+    "themes": [
+      {
+        "label": "Cockpit Arcade",
+        "uiTheme": "vs-dark",
+        "path": "./themes/cockpit-arcade-color-theme.json"
+      },
+      {
+        "label": "Cockpit Light",
+        "uiTheme": "vs",
+        "path": "./themes/cockpit-light-color-theme.json"
+      },
+      {
+        "label": "Cockpit Synthwave",
+        "uiTheme": "vs-dark",
+        "path": "./themes/cockpit-synthwave-color-theme.json"
+      },
+      {
+        "label": "Cockpit Matrix",
+        "uiTheme": "vs-dark",
+        "path": "./themes/cockpit-matrix-color-theme.json"
+      },
+      {
+        "label": "Cockpit Amber",
+        "uiTheme": "vs-dark",
+        "path": "./themes/cockpit-amber-color-theme.json"
+      },
+      {
+        "label": "Cockpit Midnight",
+        "uiTheme": "vs-dark",
+        "path": "./themes/cockpit-midnight-color-theme.json"
+      }
+    ]
+  },
+  "scripts": {
+    "build:webview": "vite build -c webview/vite.config.mts",
+    "build:ext": "node esbuild.js",
+    "build": "pnpm build:webview && pnpm build:ext",
+    "redeploy": "node scripts/redeploy.mjs",
+    "release": "node scripts/release.mjs",
+    "watch:webview": "vite build -c webview/vite.config.mts --watch",
+    "watch:ext": "node esbuild.js --watch",
+    "dev": "pnpm build && pnpm -r --parallel run watch:webview watch:ext",
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p webview/tsconfig.json"
+  },
+  "devDependencies": {
+    "@iconify-json/pixelarticons": "^1.2.6",
+    "@iconify/react": "^6.0.2",
+    "@tailwindcss/vite": "^4.3.0",
+    "@tanstack/react-virtual": "^3.13.26",
+    "@types/node": "^22.0.0",
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0",
+    "@types/vscode": "^1.90.0",
+    "@vitejs/plugin-react": "^4.3.0",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "culori": "^4.0.2",
+    "esbuild": "^0.24.0",
+    "hast-util-to-jsx-runtime": "^2.3.6",
+    "lowlight": "^3.3.0",
+    "mermaid": "^11.15.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1",
+    "tailwind-merge": "^3.6.0",
+    "tailwindcss": "^4.3.0",
+    "typescript": "^5.6.0",
+    "unist-util-visit": "^5.1.0",
+    "vite": "^5.4.0"
+  },
+  "dependencies": {
+    "@anthropic-ai/claude-agent-sdk": "^0.3.152"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
+  }
+}

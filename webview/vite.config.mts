@@ -1,0 +1,14 @@
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+import tailwindcss from '@tailwindcss/vite'
+
+export default defineConfig({
+  root: __dirname,
+  base: './',
+  plugins: [react(), tailwindcss()],
+  build: {
+    outDir: '../out/webview',
+    emptyOutDir: true,
+    sourcemap: true,
+  },
+})

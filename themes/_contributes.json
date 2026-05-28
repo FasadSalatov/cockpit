@@ -1,0 +1,32 @@
+[
+  {
+    "label": "Cockpit Arcade",
+    "uiTheme": "vs-dark",
+    "path": "./themes/cockpit-arcade-color-theme.json"
+  },
+  {
+    "label": "Cockpit Light",
+    "uiTheme": "vs",
+    "path": "./themes/cockpit-light-color-theme.json"
+  },
+  {
+    "label": "Cockpit Synthwave",
+    "uiTheme": "vs-dark",
+    "path": "./themes/cockpit-synthwave-color-theme.json"
+  },
+  {
+    "label": "Cockpit Matrix",
+    "uiTheme": "vs-dark",
+    "path": "./themes/cockpit-matrix-color-theme.json"
+  },
+  {
+    "label": "Cockpit Amber",
+    "uiTheme": "vs-dark",
+    "path": "./themes/cockpit-amber-color-theme.json"
+  },
+  {
+    "label": "Cockpit Midnight",
+    "uiTheme": "vs-dark",
+    "path": "./themes/cockpit-midnight-color-theme.json"
+  }
+]
