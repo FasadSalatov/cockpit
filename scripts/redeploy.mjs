@@ -16,9 +16,9 @@ pkg.version = `${maj}.${min}.${pat + 1}`
 writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + '\n')
 console.log(`\n▸ Версия → ${pkg.version}`)
 
-// 2. Чистим старые vsix
+// 2. Чистим старые vsix (любые)
 for (const f of readdirSync(root)) {
-  if (f.startsWith('cockpit-') && f.endsWith('.vsix')) rmSync(join(root, f))
+  if (f.endsWith('.vsix')) rmSync(join(root, f))
 }
 
 // 3. Темы VS Code + сборка + упаковка
@@ -37,6 +37,6 @@ if (!code) {
   console.error('\n✗ Не нашёл бинарь VS Code. Задай VSCODE_BIN=/путь/к/code')
   process.exit(1)
 }
-run(`"${code}" --install-extension cockpit-${pkg.version}.vsix --force`)
+run(`"${code}" --install-extension ${pkg.name}-${pkg.version}.vsix --force`)
 
 console.log('\n✓ Установлено. Сделай: Cmd+Shift+P → «Developer: Reload Window»')

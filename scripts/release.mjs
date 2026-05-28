@@ -28,7 +28,7 @@ console.log(`\n▸ Версия → ${pkg.version}`)
 
 // 2. Чистим старые vsix
 for (const f of readdirSync(root)) {
-  if (f.startsWith('cockpit-') && f.endsWith('.vsix')) rmSync(join(root, f))
+  if (f.endsWith('.vsix')) rmSync(join(root, f))
 }
 
 // 3. Темы + сборка + упаковка
@@ -36,7 +36,7 @@ run('node scripts/gen-themes.mjs')
 run('pnpm build')
 run('npx --yes @vscode/vsce@latest package')
 
-const vsix = `cockpit-${pkg.version}.vsix`
+const vsix = `${pkg.name}-${pkg.version}.vsix`
 if (!existsSync(join(root, vsix))) {
   console.error(`✗ Не нашёл ${vsix}`)
   process.exit(1)

@@ -1,8 +1,8 @@
 {
-  "name": "cockpit",
-  "displayName": "Cockpit — Claude AI for VS Code",
-  "description": "Полноэкранный кокпит для работы с Claude через подписку: чат + правки кода с inline-diff, история сессий, темы, MCP, Tab-автодополнения, Run Tests & Fix, AI Find & Replace, Share via Gist. Часть Unyly.",
-  "version": "0.0.26",
+  "name": "unyly-cockpit",
+  "displayName": "Cockpit · AI for VS Code",
+  "description": "Full-screen AI workspace for VS Code powered by Claude (via your subscription): chat + code edits with native inline-diff, session history, 6 themes, MCP servers, Tab autocompletions, Run Tests & Fix, AI Find & Replace, Share via Gist. Part of Unyly.",
+  "version": "0.0.31",
   "publisher": "unyly",
   "license": "MIT",
   "icon": "resources/icon.png",
@@ -58,12 +58,12 @@
       },
       {
         "command": "cockpit.askAboutSelection",
-        "title": "Cockpit: Спросить про выделение",
+        "title": "Cockpit: Ask About Selection",
         "category": "Cockpit"
       },
       {
         "command": "cockpit.quickAsk",
-        "title": "Cockpit: Быстрый вопрос",
+        "title": "Cockpit: Quick Ask",
         "category": "Cockpit"
       },
       {
@@ -73,7 +73,7 @@
       },
       {
         "command": "cockpit.explainInline",
-        "title": "Cockpit: Объяснить выделение (inline)",
+        "title": "Cockpit: Explain Selection (inline)",
         "category": "Cockpit"
       },
       {
@@ -129,7 +129,7 @@
       "cockpit": [
         {
           "id": "cockpit.history",
-          "name": "История",
+          "name": "Sessions",
           "type": "webview"
         }
       ]
