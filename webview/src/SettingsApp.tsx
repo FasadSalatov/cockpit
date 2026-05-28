@@ -193,13 +193,20 @@ export function SettingsApp() {
                   {hasToken ? 'токен задан' : 'токен не задан'}
                 </span>
                 <button
+                  onClick={() => post({ type: 'autoImportToken' })}
+                  className="border-2 border-foreground bg-pixel-lime px-3 py-1 text-xs font-semibold text-black shadow-[2px_2px_0_0_var(--foreground)] hover:bg-pixel-cyan"
+                  title="Прочитать токен из macOS Keychain (нужен установленный Claude CLI после setup-token)"
+                >
+                  🦈 Подхватить из Claude CLI
+                </button>
+                <button
                   onClick={() => post({ type: 'setToken' })}
                   className="border-2 border-foreground bg-background px-3 py-1 text-xs font-semibold shadow-[2px_2px_0_0_var(--foreground)] hover:bg-pixel-magenta/15"
                 >
-                  {hasToken ? 'Сменить токен' : 'Задать токен'}
+                  {hasToken ? 'Сменить вручную' : 'Вставить вручную'}
                 </button>
                 <span className="text-[11px] text-muted-foreground">
-                  Получить: <code className="font-mono">claude setup-token</code>
+                  Если нет CLI: <code className="font-mono">npm i -g @anthropic-ai/claude-code &amp;&amp; claude setup-token</code>
                 </span>
               </div>
             </Section>

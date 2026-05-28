@@ -228,6 +228,79 @@ async function addCost(context: vscode.ExtensionContext, delta: number) {
 export function activate(context: vscode.ExtensionContext) {
   const open = vscode.commands.registerCommand('cockpit.open', () => openPanel(context))
 
+  const autoImportToken = vscode.commands.registerCommand('cockpit.autoImportToken', async () => {
+    const platform = process.platform
+    let token: string | undefined
+    const { execFile } = require('node:child_process') as typeof import('node:child_process')
+    const tryRun = (cmd: string, args: string[]): Promise<string | undefined> =>
+      new Promise((resolve) => {
+        execFile(cmd, args, { timeout: 15000 }, (err: any, stdout: string) => {
+          if (err) resolve(undefined)
+          else resolve(stdout)
+        })
+      })
+
+    try {
+      if (platform === 'darwin') {
+        // macOS: системный диалог «Allow» появится при первом использовании
+        const raw = await tryRun('security', [
+          'find-generic-password',
+          '-s',
+          'Claude Code-credentials',
+          '-w',
+        ])
+        if (raw) {
+          // Может быть JSON {accessToken,...} или просто строкой
+          try {
+            const parsed = JSON.parse(raw)
+            token =
+              parsed?.claudeAiOauth?.accessToken ??
+              parsed?.accessToken ??
+              parsed?.token ??
+              undefined
+          } catch {
+            token = raw.trim()
+          }
+        }
+      } else if (platform === 'linux') {
+        const raw = await tryRun('secret-tool', [
+          'lookup',
+          'service',
+          'Claude Code-credentials',
+        ])
+        if (raw) token = raw.trim()
+      } else if (platform === 'win32') {
+        const ps = `(Get-StoredCredential -Target 'Claude Code-credentials').Password | ConvertFrom-SecureString -AsPlainText`
+        const raw = await tryRun('powershell', ['-NoProfile', '-Command', ps])
+        if (raw) token = raw.trim()
+      }
+
+      if (!token || !token.startsWith('sk-ant-oat')) {
+        vscode.window
+          .showWarningMessage(
+            'Cockpit: не нашёл OAuth-токен в системе. Установи Claude CLI и выполни `claude setup-token`.',
+            'Открыть инструкцию'
+          )
+          .then((pick) => {
+            if (pick === 'Открыть инструкцию') {
+              vscode.env.openExternal(vscode.Uri.parse('https://unyly.org/cockpit'))
+            }
+          })
+        return
+      }
+
+      await context.secrets.store(TOKEN_KEY, token)
+      postToAll({ type: 'tokenChanged', payload: { hasToken: true } })
+      vscode.window.showInformationMessage(
+        `🦈 Cockpit: токен подхвачен из ${platform === 'darwin' ? 'macOS Keychain' : platform === 'linux' ? 'libsecret' : 'Credential Manager'}`
+      )
+    } catch (e) {
+      vscode.window.showErrorMessage(
+        `Cockpit: не удалось импортировать токен — ${e instanceof Error ? e.message : String(e)}`
+      )
+    }
+  })
+
   const setToken = vscode.commands.registerCommand('cockpit.setToken', async () => {
     const token = await vscode.window.showInputBox({
       title: 'Cockpit — токен подписки',
@@ -523,6 +596,7 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     open,
     setToken,
+    autoImportToken,
     askSelection,
     askAboutSymbol,
     quickAsk,
@@ -780,6 +854,9 @@ async function handleMessage(
       break
     case 'setToken':
       await vscode.commands.executeCommand('cockpit.setToken')
+      break
+    case 'autoImportToken':
+      await vscode.commands.executeCommand('cockpit.autoImportToken')
       break
     case 'listSessions':
       await sendSessions(context)

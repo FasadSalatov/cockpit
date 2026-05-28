@@ -2,7 +2,7 @@
   "name": "unyly-cockpit",
   "displayName": "Cockpit · AI for VS Code",
   "description": "Full-screen AI workspace for VS Code powered by Claude (via your subscription): chat + code edits with native inline-diff, session history, 6 themes, MCP servers, Tab autocompletions, Run Tests & Fix, AI Find & Replace, Share via Gist. Part of Unyly.",
-  "version": "0.0.31",
+  "version": "0.0.32",
   "publisher": "unyly",
   "license": "MIT",
   "icon": "resources/icon.png",
@@ -54,6 +54,11 @@
       {
         "command": "cockpit.setToken",
         "title": "Cockpit: Set Token",
+        "category": "Cockpit"
+      },
+      {
+        "command": "cockpit.autoImportToken",
+        "title": "Cockpit: Auto-import Token from Claude CLI",
         "category": "Cockpit"
       },
       {

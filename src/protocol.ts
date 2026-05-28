@@ -164,6 +164,7 @@ export type WebviewToHost =
   | { type: 'setTheme'; payload: { theme: string } }
   | { type: 'setModel'; payload: { model: string } }
   | { type: 'setToken' }
+  | { type: 'autoImportToken' }
   | { type: 'log'; payload: { message: string } }
   | { type: 'listSessions' }
   | { type: 'loadSession'; payload: { sessionId: string } }
