@@ -105,6 +105,16 @@
         "command": "cockpit.openSettings",
         "title": "Cockpit: Open Settings",
         "category": "Cockpit"
+      },
+      {
+        "command": "cockpit.bridge.pair",
+        "title": "Cockpit Mobile: Pair Phone (OTP)",
+        "category": "Cockpit"
+      },
+      {
+        "command": "cockpit.bridge.revoke",
+        "title": "Cockpit Mobile: Revoke Phone Pairing",
+        "category": "Cockpit"
       }
     ],
     "menus": {
@@ -226,10 +236,12 @@
     "tailwindcss": "^4.3.0",
     "typescript": "^5.6.0",
     "unist-util-visit": "^5.1.0",
-    "vite": "^5.4.0"
+    "vite": "^5.4.0",
+    "@types/ws": "^8.5.10"
   },
   "dependencies": {
-    "@anthropic-ai/claude-agent-sdk": "^0.3.152"
+    "@anthropic-ai/claude-agent-sdk": "^0.3.152",
+    "ws": "^8.18.0"
   },
   "pnpm": {
     "onlyBuiltDependencies": [

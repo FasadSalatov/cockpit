@@ -13,6 +13,7 @@ import type {
 } from './protocol'
 import { DEFAULT_SETTINGS } from './protocol'
 import { runPrompt } from './agent'
+import { BridgeHost } from './bridge-host'
 
 const TOKEN_KEY = 'cockpit.oauthToken'
 const THEME_KEY = 'cockpit.theme'
@@ -85,6 +86,7 @@ let panel: vscode.WebviewPanel | undefined
 let settingsPanel: vscode.WebviewPanel | undefined
 let sidebarView: vscode.WebviewView | undefined
 let sessionId: string | undefined
+let bridge: BridgeHost | undefined
 let busy = false
 let currentInterrupt: (() => void) | undefined
 let statusItem: vscode.StatusBarItem | undefined
@@ -189,6 +191,7 @@ function requestPermission(tool: string, input: Record<string, unknown>): Promis
 
 function postToMain(msg: HostToWebview) {
   panel?.webview.postMessage(msg)
+  bridge?.observeHostToWebview(msg, sessionId)
 }
 function postToSidebar(msg: HostToWebview) {
   sidebarView?.webview.postMessage(msg)
@@ -593,6 +596,82 @@ export function activate(context: vscode.ExtensionContext) {
     previewProvider
   )
 
+  // ── Cockpit Bridge (mobile companion) ─────────────────────────────────────
+  bridge = new BridgeHost(context, {
+    onPhonePrompt: async (sidFromPhone, text) => {
+      if (sidFromPhone && sidFromPhone !== sessionId) {
+        try {
+          await loadSession(context, sidFromPhone)
+        } catch {
+          // session may not exist anymore — just submit into current session
+        }
+      }
+      await onPrompt(context, text)
+    },
+    onPhoneDiffDecision: (diffId, decision) => {
+      const resolve = pendingPermissions.get(diffId)
+      if (!resolve) return
+      pendingPermissions.delete(diffId)
+      resolve(decision === 'approve')
+      closePermissionDiff(diffId)
+    },
+    onPhoneSessionSwitch: async (sid) => {
+      try {
+        await loadSession(context, sid)
+      } catch {}
+    },
+    getActiveSessionId: () => sessionId,
+  })
+  void bridge.init()
+  context.subscriptions.push(bridge)
+
+  const bridgePair = vscode.commands.registerCommand('cockpit.bridge.pair', async () => {
+    if (!bridge) return
+    const otp = await vscode.window.showInputBox({
+      title: 'Cockpit Mobile · Pair Phone',
+      prompt: 'Enter the 6-digit OTP from @CockpitMobileBot',
+      placeHolder: '123456',
+      ignoreFocusOut: true,
+      validateInput: (v) => (/^\d{6}$/.test(v.trim()) ? undefined : 'Need 6 digits'),
+    })
+    if (!otp) return
+    try {
+      const res = await fetch('https://unyly.org/api/cockpit/pair/claim', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          otp: otp.trim(),
+          label: vscode.workspace.workspaceFolders?.[0]?.name,
+        }),
+      })
+      const json = (await res.json().catch(() => ({}))) as { pairKey?: string; error?: string }
+      if (!res.ok || !json.pairKey) {
+        vscode.window.showErrorMessage(
+          `Cockpit Mobile · pair failed: ${json.error ?? res.status}`,
+        )
+        return
+      }
+      await bridge.setPairKey(json.pairKey)
+      vscode.window.showInformationMessage('🦈 Cockpit Mobile paired ✓')
+    } catch (e) {
+      vscode.window.showErrorMessage(
+        `Cockpit Mobile · pair error: ${e instanceof Error ? e.message : String(e)}`,
+      )
+    }
+  })
+
+  const bridgeRevoke = vscode.commands.registerCommand('cockpit.bridge.revoke', async () => {
+    if (!bridge) return
+    const pick = await vscode.window.showWarningMessage(
+      'Revoke phone pairing? The Cockpit Mobile app will disconnect.',
+      { modal: true },
+      'Revoke',
+    )
+    if (pick !== 'Revoke') return
+    await bridge.revoke()
+    vscode.window.showInformationMessage('Cockpit Mobile pairing revoked.')
+  })
+
   context.subscriptions.push(
     open,
     setToken,
@@ -614,6 +693,8 @@ export function activate(context: vscode.ExtensionContext) {
     explainSub,
     explainInline,
     memoryWatcher,
+    bridgePair,
+    bridgeRevoke,
     ...(promptsWatcher ? [promptsWatcher] : [])
   )
 }
@@ -767,6 +848,13 @@ async function handleMessage(
       if (resolve) {
         pendingPermissions.delete(msg.payload.id)
         resolve(msg.payload.approved)
+        if (sessionId) {
+          bridge?.notifyDiffResolved(
+            sessionId,
+            msg.payload.id,
+            msg.payload.approved ? 'approve' : 'reject',
+          )
+        }
       }
       closePermissionDiff(msg.payload.id)
       break
@@ -778,17 +866,20 @@ async function handleMessage(
       pendingPermissions.clear()
       break
     case 'reset':
-    case 'newSession':
+    case 'newSession': {
+      const prevSession = sessionId
       sessionId = undefined
       sessionCostUsd = 0
       sessionInputTokens = 0
       sessionOutputTokens = 0
       sessionCacheReadTokens = 0
+      if (prevSession) bridge?.notifySessionClosed(prevSession)
       if (msg.type === 'newSession') {
         postToMain({ type: 'sessionLoaded', payload: { messages: [], sessionId: '' } })
         await sendSessions(context)
       }
       break
+    }
     case 'createPullRequest':
       await createPRFromCockpit(msg.payload.title, msg.payload.body)
       break
@@ -870,6 +961,7 @@ async function handleMessage(
       break
     case 'deleteSession':
       await deleteSessionSafe(msg.payload.sessionId)
+      bridge?.notifySessionClosed(msg.payload.sessionId)
       if (sessionId === msg.payload.sessionId) sessionId = undefined
       await sendSessions(context)
       break
@@ -948,7 +1040,11 @@ async function onPrompt(
       onControl: (interrupt) => (currentInterrupt = interrupt),
     },
     {
-      onSession: (id) => (sessionId = id),
+      onSession: (id) => {
+        const wasNew = sessionId !== id
+        sessionId = id
+        if (wasNew) bridge?.notifySessionOpened(id)
+      },
       onStreamStart: () => postToMain({ type: 'streamStart' }),
       onDelta: (t) => postToMain({ type: 'delta', payload: { text: t } }),
       onTool: (name) => {
