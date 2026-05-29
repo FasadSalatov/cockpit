@@ -82,6 +82,24 @@ function getSettings(context: vscode.ExtensionContext): Settings {
   return { ...DEFAULT_SETTINGS, ...stored }
 }
 
+/**
+ * Claude Agent SDK on Windows sanitises the cwd into the folder name under
+ * `~/.claude/projects/<sanitised>` — and the sanitisation is **case-sensitive**.
+ * VSCode's `uri.fsPath` returns the drive letter in whatever case the workspace
+ * was opened (Explorer = `C:\…`, CLI = `c:\…`), but Claude Code consistently
+ * writes under lower-case `c:\…`. If we pass upper-case to the SDK it looks
+ * inside an empty `C--Users-…` directory and returns 0 sessions — even though
+ * the real history is right next door in `c--Users-…`.
+ */
+function getSdkCwd(): string | undefined {
+  const raw = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath
+  if (!raw) return undefined
+  if (process.platform === 'win32' && /^[A-Z]:/.test(raw)) {
+    return raw[0].toLowerCase() + raw.slice(1)
+  }
+  return raw
+}
+
 let panel: vscode.WebviewPanel | undefined
 let settingsPanel: vscode.WebviewPanel | undefined
 let sidebarView: vscode.WebviewView | undefined
@@ -694,7 +712,7 @@ export function activate(context: vscode.ExtensionContext) {
     getInitialSessions: async () => {
       try {
         const sdk = await import('@anthropic-ai/claude-agent-sdk')
-        const cwd = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath
+        const cwd = getSdkCwd()
         const list = await sdk.listSessions({ dir: cwd, limit: 100 })
         console.log(`[cockpit] listSessions(dir=${cwd ?? '<none>'}) → ${list.length} sessions`)
         return list.map((s) => ({
@@ -1127,7 +1145,7 @@ async function onPrompt(
     promptText,
     {
       token: auth,
-      cwd: vscode.workspace.workspaceFolders?.[0]?.uri.fsPath,
+      cwd: getSdkCwd(),
       resume: sessionId,
       model: context.globalState.get<string>(MODEL_KEY) ?? 'default',
       settings: s,
@@ -1213,8 +1231,9 @@ async function sendSessions(context: vscode.ExtensionContext) {
   if (!sidebarView && !panel) return
   try {
     const sdk = await import('@anthropic-ai/claude-agent-sdk')
-    const cwd = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath
+    const cwd = getSdkCwd()
     const list = await sdk.listSessions({ dir: cwd, limit: 100 })
+    console.log(`[cockpit] sendSessions(dir=${cwd ?? '<none>'}) → ${list.length} items`)
     const items: SessionEntry[] = list.map((s) => ({
       sessionId: s.sessionId,
       title: s.customTitle || s.summary || s.firstPrompt?.slice(0, 60) || 'Без названия',
@@ -1231,7 +1250,7 @@ async function sendSessions(context: vscode.ExtensionContext) {
 async function loadSession(context: vscode.ExtensionContext, id: string) {
   try {
     const sdk = await import('@anthropic-ai/claude-agent-sdk')
-    const cwd = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath
+    const cwd = getSdkCwd()
     const raw = await sdk.getSessionMessages(id, { dir: cwd, limit: 500 })
     const messages = convertSessionMessages(raw)
     sessionId = id
