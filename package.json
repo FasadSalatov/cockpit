@@ -2,7 +2,7 @@
   "name": "unyly-cockpit",
   "displayName": "Cockpit · AI for VS Code",
   "description": "Full-screen AI workspace for VS Code powered by Claude (via your subscription): chat + code edits with native inline-diff, session history, 6 themes, MCP servers, Tab autocompletions, Run Tests & Fix, AI Find & Replace, Share via Gist. Part of Unyly.",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "publisher": "unyly",
   "license": "MIT",
   "icon": "resources/icon.png",
