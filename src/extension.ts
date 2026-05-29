@@ -100,10 +100,73 @@ function getSdkCwd(): string | undefined {
   return raw
 }
 
+/** Folder under `~/.claude/projects/` where Claude Code stores this workspace's
+ *  sessions. Mirrors Anthropic's sanitisation (replace `\` `/` `:` with `-`). */
+function getSessionsDir(cwd: string | undefined): string | null {
+  if (!cwd) return null
+  const sanitized = cwd.replace(/[\\/:]/g, '-')
+  return path.join(require('os').homedir(), '.claude', 'projects', sanitized)
+}
+
+/** Active file watcher for the currently-opened session jsonl. We re-create
+ *  it whenever the user switches sessions and dispose on panel close. */
+let sessionWatcher: vscode.FileSystemWatcher | null = null
+let sessionWatcherDebounce: NodeJS.Timeout | null = null
+function disposeSessionWatcher() {
+  if (sessionWatcher) {
+    sessionWatcher.dispose()
+    sessionWatcher = null
+  }
+  if (sessionWatcherDebounce) {
+    clearTimeout(sessionWatcherDebounce)
+    sessionWatcherDebounce = null
+  }
+}
+function watchSessionFile(context: vscode.ExtensionContext, id: string) {
+  disposeSessionWatcher()
+  const cwd = getSdkCwd()
+  const dir = getSessionsDir(cwd)
+  if (!dir) return
+  try {
+    const pattern = new vscode.RelativePattern(vscode.Uri.file(dir), `${id}.jsonl`)
+    sessionWatcher = vscode.workspace.createFileSystemWatcher(pattern, true, false, true)
+    const onChange = () => {
+      // Debounce — Claude Code appends multiple lines per "turn".
+      if (sessionWatcherDebounce) clearTimeout(sessionWatcherDebounce)
+      sessionWatcherDebounce = setTimeout(() => {
+        sessionWatcherDebounce = null
+        // Only refresh if we're still on this session and panel is alive.
+        if (sessionId === id && panel) void reloadCurrentSession(context, id)
+      }, 400)
+    }
+    sessionWatcher.onDidChange(onChange)
+    context.subscriptions.push(sessionWatcher)
+  } catch (e) {
+    console.warn('[cockpit] watchSessionFile failed:', e)
+  }
+}
+async function reloadCurrentSession(context: vscode.ExtensionContext, id: string) {
+  try {
+    const sdk = await import('@anthropic-ai/claude-agent-sdk')
+    const cwd = getSdkCwd()
+    const UI_LIMIT = 500
+    const all = await sdk.getSessionMessages(id, { dir: cwd, limit: 100_000 })
+    const slice = all.length > UI_LIMIT ? all.slice(-UI_LIMIT) : all
+    const messages = convertSessionMessages(slice)
+    postToMain({ type: 'sessionLoaded', payload: { messages, sessionId: id } })
+    await sendSessions(context)
+  } catch (e) {
+    console.warn('[cockpit] reloadCurrentSession failed:', e)
+  }
+}
+
 let panel: vscode.WebviewPanel | undefined
 let settingsPanel: vscode.WebviewPanel | undefined
 let sidebarView: vscode.WebviewView | undefined
 let sessionId: string | undefined
+/** Pending session payload — replayed on the next 'hello' from main webview
+ *  to fix the race where loadSession runs before the panel finished mounting. */
+let pendingSessionLoad: { sessionId: string; messages: HistoryMsg[] } | null = null
 let bridge: BridgeHost | undefined
 let busy = false
 let currentInterrupt: (() => void) | undefined
@@ -813,7 +876,14 @@ async function openPanel(context: vscode.ExtensionContext) {
     undefined,
     context.subscriptions
   )
-  panel.onDidDispose(() => (panel = undefined), undefined, context.subscriptions)
+  panel.onDidDispose(
+    () => {
+      panel = undefined
+      disposeSessionWatcher()
+    },
+    undefined,
+    context.subscriptions,
+  )
 }
 
 async function openSettingsPanel(context: vscode.ExtensionContext) {
@@ -885,6 +955,13 @@ async function handleMessage(
       }
       if (origin === 'sidebar') await sendSessions(context)
       if (origin === 'main') {
+        // Replay a pending session-load that arrived before the panel finished
+        // mounting (fixes "first click on a sidebar session opens a blank new
+        // chat" race).
+        if (pendingSessionLoad) {
+          postToMain({ type: 'sessionLoaded', payload: pendingSessionLoad })
+          pendingSessionLoad = null
+        }
         const cached = context.globalState.get<string>(JOKE_CACHE_KEY)
         if (cached) postToMain({ type: 'joke', payload: { text: cached } })
         // фоном тянем свежую (если кэш старше 30 минут)
@@ -1262,8 +1339,15 @@ async function loadSession(context: vscode.ExtensionContext, id: string) {
       `[cockpit] loadSession(${id.slice(0, 8)}…) total=${all.length} shown=${messages.length}`,
     )
     sessionId = id
+    // Save payload to replay on next 'hello' — guards the race where the
+    // panel hasn't mounted (and thus isn't listening for messages) by the
+    // time we postMessage below.
+    pendingSessionLoad = { sessionId: id, messages }
     await openPanel(context)
     postToMain({ type: 'sessionLoaded', payload: { messages, sessionId: id } })
+    // Watch the jsonl — picks up messages written by external Claude Code CLI
+    // / bridge / other clients, pushes them live into the chat panel.
+    watchSessionFile(context, id)
     await sendSessions(context)
   } catch (e) {
     console.error('[cockpit] loadSession failed:', e)
