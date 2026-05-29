@@ -34,7 +34,10 @@ for (const f of readdirSync(root)) {
 // 3. Темы + сборка + упаковка
 run('node scripts/gen-themes.mjs')
 run('pnpm build')
-run('npx --yes @vscode/vsce@latest package')
+// --no-dependencies: vsce под капотом дёргает `npm list --production`, который
+// не понимает pnpm-структуру node_modules и валится на extraneous packages.
+// Содержимое .vsix не страдает — esbuild уже всё забандлил в out/extension.js.
+run('npx --yes @vscode/vsce@latest package --no-dependencies')
 
 const vsix = `${pkg.name}-${pkg.version}.vsix`
 if (!existsSync(join(root, vsix))) {
