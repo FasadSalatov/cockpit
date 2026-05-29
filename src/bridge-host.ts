@@ -159,9 +159,9 @@ export class BridgeHost implements vscode.Disposable {
       return
     }
     this.ws.on('open', () => this.onOpen())
-    this.ws.on('message', (raw) => this.onMessage(raw))
-    this.ws.on('close', (code, reason) => this.onClose(code, reason.toString()))
-    this.ws.on('error', (err) => this.log(`ws error: ${err.message}`))
+    this.ws.on('message', (raw: WebSocket.RawData) => this.onMessage(raw))
+    this.ws.on('close', (code: number, reason: Buffer) => this.onClose(code, reason.toString()))
+    this.ws.on('error', (err: Error) => this.log(`ws error: ${err.message}`))
     this.ws.on('pong', () => {
       // keep-alive — server pings us, we pong back automatically (ws lib).
     })
