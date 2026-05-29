@@ -137,6 +137,21 @@ export class BridgeHost implements vscode.Disposable {
   }
 
   async revoke(): Promise<void> {
+    // Tell the hub first — it marks the pair revoked + drops phone sockets,
+    // so the miniapp lands on the unpaired splash instead of dangling on a
+    // dead pair_key. Then wipe local state.
+    const oldKey = this.pairKey
+    if (oldKey) {
+      try {
+        await fetch('https://unyly.org/api/cockpit/pair/cockpit-revoke', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ pairKey: oldKey }),
+        })
+      } catch (e) {
+        this.log(`cockpit-revoke fetch failed: ${(e as Error).message}`)
+      }
+    }
     await this.context.secrets.delete(BRIDGE_PAIR_KEY)
     await this.context.globalState.update(BRIDGE_PAIRED_AT_KEY, undefined)
     await this.context.globalState.update(BRIDGE_PAIR_LABEL_KEY, undefined)
@@ -221,7 +236,10 @@ export class BridgeHost implements vscode.Disposable {
     if (!fetcher) return
     try {
       const sessions = await fetcher()
-      if (!sessions || sessions.length === 0) return
+      if (!sessions || sessions.length === 0) {
+        this.log('getInitialSessions returned 0 — nothing to snapshot')
+        return
+      }
       this.send({
         t: 'session.snapshot',
         instanceId: this.instanceId,

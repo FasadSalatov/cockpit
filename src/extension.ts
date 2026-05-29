@@ -696,6 +696,7 @@ export function activate(context: vscode.ExtensionContext) {
         const sdk = await import('@anthropic-ai/claude-agent-sdk')
         const cwd = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath
         const list = await sdk.listSessions({ dir: cwd, limit: 100 })
+        console.log(`[cockpit] listSessions(dir=${cwd ?? '<none>'}) → ${list.length} sessions`)
         return list.map((s) => ({
           sessionId: s.sessionId,
           title:
