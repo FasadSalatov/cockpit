@@ -218,6 +218,43 @@ function broadcastBridgeStatus() {
   if (!bridge) return
   postToAll({ type: 'bridgeStatus', payload: bridge.getStatus() })
 }
+
+async function bridgeGenerateCode() {
+  try {
+    const res = await fetch('https://unyly.org/api/cockpit/pair/cockpit-init', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ label: vscode.workspace.workspaceFolders?.[0]?.name }),
+    })
+    const json = (await res.json().catch(() => ({}))) as {
+      token?: string
+      deepLink?: string
+      expiresAt?: string
+      error?: string
+    }
+    if (!res.ok || !json.token || !json.deepLink || !json.expiresAt) {
+      postToSettings({
+        type: 'bridgeCode',
+        payload: { ok: false, message: json.error || `HTTP ${res.status}` },
+      })
+      return
+    }
+    postToSettings({
+      type: 'bridgeCode',
+      payload: {
+        ok: true,
+        token: json.token,
+        deepLink: json.deepLink,
+        expiresAt: json.expiresAt,
+      },
+    })
+  } catch (e) {
+    postToSettings({
+      type: 'bridgeCode',
+      payload: { ok: false, message: e instanceof Error ? e.message : String(e) },
+    })
+  }
+}
 function postToSidebar(msg: HostToWebview) {
   sidebarView?.webview.postMessage(msg)
 }
@@ -993,6 +1030,9 @@ async function handleMessage(
       break
     case 'bridgeQueryStatus':
       broadcastBridgeStatus()
+      break
+    case 'bridgeGenerateCode':
+      void bridgeGenerateCode()
       break
     case 'bridgePair': {
       const res = await bridgeClaim(msg.payload.otp)

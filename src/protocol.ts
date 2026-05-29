@@ -159,6 +159,12 @@ export type HostToWebview =
       payload: { paired: boolean; instanceId: string; pairedAt?: number; pairLabel?: string }
     }
   | { type: 'bridgeResult'; payload: { ok: boolean; message?: string } }
+  | {
+      type: 'bridgeCode'
+      payload:
+        | { ok: true; token: string; deepLink: string; expiresAt: string }
+        | { ok: false; message: string }
+    }
 
 export type WebviewToHost =
   | { type: 'hello'; payload: { view: 'main' | 'sidebar' | 'settings' } }
@@ -200,3 +206,4 @@ export type WebviewToHost =
   | { type: 'bridgeQueryStatus' }
   | { type: 'bridgePair'; payload: { otp: string } }
   | { type: 'bridgeRevoke' }
+  | { type: 'bridgeGenerateCode' }

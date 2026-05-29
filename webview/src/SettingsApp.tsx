@@ -56,6 +56,10 @@ type BridgeStatus = {
   pairLabel?: string
 }
 
+type BridgeCode =
+  | { ok: true; token: string; deepLink: string; expiresAt: string; qrDataUrl?: string }
+  | { ok: false; message: string }
+
 export function SettingsApp() {
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS)
   const [theme, setTheme] = useState('arcade')
@@ -76,6 +80,8 @@ export function SettingsApp() {
   const [bridgeOtp, setBridgeOtp] = useState('')
   const [bridgeBusy, setBridgeBusy] = useState(false)
   const [bridgeMsg, setBridgeMsg] = useState<{ ok: boolean; text: string } | null>(null)
+  const [bridgeCode, setBridgeCode] = useState<BridgeCode | null>(null)
+  const [bridgeCodeBusy, setBridgeCodeBusy] = useState(false)
 
   useEffect(() => {
     const off = onMessage((m) => {
@@ -102,6 +108,41 @@ export function SettingsApp() {
             setBridgeMsg({ ok: true, text: 'Спарено ✓' })
           } else {
             setBridgeMsg({ ok: false, text: m.payload.message || 'Ошибка' })
+          }
+          break
+        case 'bridgeCode':
+          setBridgeCodeBusy(false)
+          if (m.payload.ok) {
+            const payload = m.payload
+            // Render QR client-side (qrcode lib in webview bundle). Falls back
+            // gracefully to text-only if the lib is missing.
+            import('qrcode')
+              .then((mod) =>
+                mod.toDataURL(payload.deepLink, {
+                  margin: 1,
+                  scale: 6,
+                  color: { dark: '#0a0a0f', light: '#ffffff' },
+                }),
+              )
+              .then((qrDataUrl) =>
+                setBridgeCode({
+                  ok: true,
+                  token: payload.token,
+                  deepLink: payload.deepLink,
+                  expiresAt: payload.expiresAt,
+                  qrDataUrl,
+                }),
+              )
+              .catch(() =>
+                setBridgeCode({
+                  ok: true,
+                  token: payload.token,
+                  deepLink: payload.deepLink,
+                  expiresAt: payload.expiresAt,
+                }),
+              )
+          } else {
+            setBridgeCode({ ok: false, message: m.payload.message })
           }
           break
         case 'cost':
@@ -285,40 +326,65 @@ export function SettingsApp() {
                 ) : (
                   <div className="space-y-3">
                     <ol className="list-decimal space-y-1 pl-5 text-xs text-muted-foreground">
+                      <li>Нажми «Сгенерировать код» ↓.</li>
                       <li>
-                        Открой <code className="font-mono">@CockpitMobileBot</code> в Telegram и
-                        отправь команду <code className="font-mono">/pair</code>.
+                        Открой <code className="font-mono">@CockpitMobileBot</code> в Telegram (или
+                        отсканируй QR с экрана) — миниапп откроется автоматически.
                       </li>
-                      <li>Бот пришлёт 6-значный код. Введи его сюда ↓.</li>
-                      <li>Код одноразовый, живёт 5 минут.</li>
+                      <li>
+                        Если миниапп открыт руками — введи 8-символьный код в форме «Спарить ПК».
+                      </li>
                     </ol>
-                    <form
-                      onSubmit={(e) => {
-                        e.preventDefault()
-                        if (!/^\d{6}$/.test(bridgeOtp.trim())) return
-                        setBridgeMsg(null)
-                        setBridgeBusy(true)
-                        post({ type: 'bridgePair', payload: { otp: bridgeOtp.trim() } })
+                    <button
+                      onClick={() => {
+                        setBridgeCode(null)
+                        setBridgeCodeBusy(true)
+                        post({ type: 'bridgeGenerateCode' })
                       }}
-                      className="flex flex-wrap items-center gap-2"
+                      disabled={bridgeCodeBusy}
+                      className="border-2 border-foreground bg-pixel-lime px-3 py-1 text-xs font-semibold text-black shadow-[2px_2px_0_0_var(--foreground)] hover:bg-pixel-cyan disabled:opacity-50"
                     >
-                      <input
-                        inputMode="numeric"
-                        pattern="\d{6}"
-                        maxLength={6}
-                        value={bridgeOtp}
-                        onChange={(e) => setBridgeOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                        placeholder="123456"
-                        className="w-32 border-2 border-foreground bg-background px-2 py-1 font-mono text-base tracking-widest outline-none"
-                      />
-                      <button
-                        type="submit"
-                        disabled={bridgeBusy || !/^\d{6}$/.test(bridgeOtp.trim())}
-                        className="border-2 border-foreground bg-pixel-lime px-3 py-1 text-xs font-semibold text-black shadow-[2px_2px_0_0_var(--foreground)] hover:bg-pixel-cyan disabled:opacity-50"
-                      >
-                        {bridgeBusy ? 'жду…' : 'Спарить'}
-                      </button>
-                    </form>
+                      {bridgeCodeBusy ? 'генерирую…' : 'Сгенерировать код'}
+                    </button>
+                    {bridgeCode && bridgeCode.ok ? (
+                      <div className="space-y-3 border-2 border-foreground bg-background p-3 shadow-[4px_4px_0_0_var(--foreground)]">
+                        <div className="flex flex-wrap items-center gap-4">
+                          {bridgeCode.qrDataUrl ? (
+                            <img
+                              src={bridgeCode.qrDataUrl}
+                              alt="QR for pairing"
+                              className="size-44 border-2 border-foreground"
+                            />
+                          ) : (
+                            <div className="flex size-44 items-center justify-center border-2 border-foreground text-[10px] text-muted-foreground">
+                              QR недоступен
+                            </div>
+                          )}
+                          <div className="flex min-w-0 flex-1 flex-col gap-2 text-xs">
+                            <div className="text-muted-foreground">Код для ввода в миниаппе:</div>
+                            <div className="font-mono text-3xl tracking-widest text-pixel-lime">
+                              {bridgeCode.token}
+                            </div>
+                            <div className="text-[11px] text-muted-foreground">
+                              Действует 5 минут, одноразовый.
+                            </div>
+                            <a
+                              href={bridgeCode.deepLink}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="break-all text-[11px] text-pixel-cyan underline"
+                            >
+                              {bridgeCode.deepLink}
+                            </a>
+                          </div>
+                        </div>
+                      </div>
+                    ) : null}
+                    {bridgeCode && !bridgeCode.ok ? (
+                      <div className="border-2 border-pixel-coral/60 px-2 py-1 text-xs text-pixel-coral">
+                        Ошибка: {bridgeCode.message}
+                      </div>
+                    ) : null}
                   </div>
                 )}
 
