@@ -10,8 +10,9 @@
 //   (Marketplace → manage extensions → publisher → PAT)
 // Open VSX: `OVSX_PAT` env с токеном из open-vsx.org
 import { execSync } from 'node:child_process'
-import { readFileSync, writeFileSync, readdirSync, rmSync, existsSync } from 'node:fs'
+import { readFileSync, writeFileSync, readdirSync, rmSync, existsSync, mkdtempSync, cpSync, copyFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
+import { tmpdir } from 'node:os'
 import { fileURLToPath } from 'node:url'
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')
@@ -31,19 +32,32 @@ for (const f of readdirSync(root)) {
   if (f.endsWith('.vsix')) rmSync(join(root, f))
 }
 
-// 3. Темы + сборка + упаковка
+// 3. Темы + сборка
 run('node scripts/gen-themes.mjs')
 run('pnpm build')
-// --no-dependencies: vsce под капотом дёргает `npm list --production`, который
-// не понимает pnpm-структуру node_modules и валится на extraneous packages.
-// Содержимое .vsix не страдает — esbuild уже всё забандлил в out/extension.js.
-run('npx --yes @vscode/vsce@latest package --no-dependencies')
+
+// 3.1 Упаковка
+// vsce package под капотом дёргает `npm list --production` и с pnpm-структурой
+// node_modules валится на extraneous. А --no-dependencies *не включает*
+// node_modules в vsix — runtime падает с ERR_MODULE_NOT_FOUND на claude-agent-sdk.
+// Workaround: временно перезаливаем node_modules через npm (flat layout +
+// package-lock.json), пакуем, потом восстанавливаем pnpm.
+console.log('▸ Переустановка node_modules через npm для vsce (временно)…')
+rmSync(join(root, 'node_modules'), { recursive: true, force: true })
+rmSync(join(root, 'package-lock.json'), { force: true })
+run('npm install --omit=dev --legacy-peer-deps --no-audit --no-fund')
+run('npx --yes @vscode/vsce@latest package')
 
 const vsix = `${pkg.name}-${pkg.version}.vsix`
 if (!existsSync(join(root, vsix))) {
   console.error(`✗ Не нашёл ${vsix}`)
   process.exit(1)
 }
+
+console.log('▸ Восстановление pnpm node_modules…')
+rmSync(join(root, 'node_modules'), { recursive: true, force: true })
+rmSync(join(root, 'package-lock.json'), { force: true })
+run('pnpm install --frozen-lockfile')
 
 // 4. Публикация
 const tag = `v${pkg.version}`

@@ -2,7 +2,7 @@
   "name": "unyly-cockpit",
   "displayName": "Cockpit · AI for VS Code",
   "description": "Full-screen AI workspace for VS Code powered by Claude (via your subscription): chat + code edits with native inline-diff, session history, 6 themes, MCP servers, Tab autocompletions, Run Tests & Fix, AI Find & Replace, Share via Gist. Part of Unyly.",
-  "version": "0.3.2",
+  "version": "0.4.0",
   "publisher": "unyly",
   "license": "MIT",
   "icon": "resources/icon.png",
@@ -243,7 +243,10 @@
     "@anthropic-ai/claude-agent-sdk": "^0.3.152",
     "@types/qrcode": "^1.5.6",
     "qrcode": "^1.5.4",
-    "ws": "^8.21.0"
+    "ws": "^8.21.0",
+    "@anthropic-ai/sdk": "^0.93.0",
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "zod": "^4.0.0"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
