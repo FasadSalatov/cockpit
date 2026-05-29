@@ -58,6 +58,20 @@ export type PhoneCallbacks = {
   onPhoneSessionSwitch: (sessionId: string) => Promise<void> | void
   /** Get the cockpit-side sessionId currently considered "active". */
   getActiveSessionId: () => string | undefined
+  /**
+   * Return ALL sessions cockpit currently knows of — pushed once per WS
+   * connect so the miniapp shows the full list even before any messages
+   * have flowed through the hub.
+   */
+  getInitialSessions?: () => Promise<
+    Array<{
+      sessionId: string
+      title?: string
+      firstPrompt?: string
+      cwd?: string
+      lastModified?: number
+    }>
+  >
 }
 
 export class BridgeHost implements vscode.Disposable {
@@ -197,6 +211,26 @@ export class BridgeHost implements vscode.Disposable {
         this.ws?.ping()
       } catch {}
     }, 25_000)
+    // Push the full session list to the hub so the miniapp can render every
+    // chat — even ones that never had a message stream through the bridge.
+    void this.pushInitialSessions()
+  }
+
+  private async pushInitialSessions(): Promise<void> {
+    const fetcher = this.callbacks.getInitialSessions
+    if (!fetcher) return
+    try {
+      const sessions = await fetcher()
+      if (!sessions || sessions.length === 0) return
+      this.send({
+        t: 'session.snapshot',
+        instanceId: this.instanceId,
+        sessions,
+      } as ServerEvent)
+      this.log(`session.snapshot sent (${sessions.length})`)
+    } catch (e) {
+      this.log(`getInitialSessions failed: ${(e as Error).message}`)
+    }
   }
 
   private onClose(code: number, reason: string): void {
