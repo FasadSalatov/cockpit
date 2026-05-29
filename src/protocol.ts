@@ -113,6 +113,7 @@ export type HostToWebview =
         view?: 'main' | 'sidebar' | 'settings'
         settings: Settings
         achievements?: string[]
+        bridge?: { paired: boolean; instanceId: string; pairedAt?: number; pairLabel?: string }
       }
     }
   | { type: 'streamStart' }
@@ -153,6 +154,11 @@ export type HostToWebview =
   | { type: 'joke'; payload: { text: string } }
   | { type: 'themeChanged'; payload: { theme: string } }
   | { type: 'modelChanged'; payload: { model: string } }
+  | {
+      type: 'bridgeStatus'
+      payload: { paired: boolean; instanceId: string; pairedAt?: number; pairLabel?: string }
+    }
+  | { type: 'bridgeResult'; payload: { ok: boolean; message?: string } }
 
 export type WebviewToHost =
   | { type: 'hello'; payload: { view: 'main' | 'sidebar' | 'settings' } }
@@ -191,3 +197,6 @@ export type WebviewToHost =
   | { type: 'speculativeAsk'; payload: { text: string } }
   | { type: 'voiceInput' }
   | { type: 'requestJoke' }
+  | { type: 'bridgeQueryStatus' }
+  | { type: 'bridgePair'; payload: { otp: string } }
+  | { type: 'bridgeRevoke' }

@@ -24,6 +24,7 @@ import {
 
 type CategoryId =
   | 'account'
+  | 'mobile'
   | 'appearance'
   | 'behavior'
   | 'security'
@@ -36,6 +37,7 @@ type CategoryId =
 
 const CATEGORIES: { id: CategoryId; label: string; icon: string }[] = [
   { id: 'account', label: 'Аккаунт', icon: 'lock' },
+  { id: 'mobile', label: 'Cockpit Mobile', icon: 'smartphone' },
   { id: 'appearance', label: 'Внешний вид', icon: 'image' },
   { id: 'behavior', label: 'Поведение', icon: 'android' },
   { id: 'security', label: 'Безопасность', icon: 'check' },
@@ -46,6 +48,13 @@ const CATEGORIES: { id: CategoryId; label: string; icon: string }[] = [
   { id: 'limits', label: 'Лимиты подписки', icon: 'sparkle' },
   { id: 'achievements', label: 'Achievements', icon: 'sparkles' },
 ]
+
+type BridgeStatus = {
+  paired: boolean
+  instanceId: string
+  pairedAt?: number
+  pairLabel?: string
+}
 
 export function SettingsApp() {
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS)
@@ -63,6 +72,10 @@ export function SettingsApp() {
   const [achievements, setAchievements] = useState<string[]>([])
   const [active, setActive] = useState<CategoryId>('account')
   const [search, setSearch] = useState('')
+  const [bridgeStatus, setBridgeStatus] = useState<BridgeStatus | null>(null)
+  const [bridgeOtp, setBridgeOtp] = useState('')
+  const [bridgeBusy, setBridgeBusy] = useState(false)
+  const [bridgeMsg, setBridgeMsg] = useState<{ ok: boolean; text: string } | null>(null)
 
   useEffect(() => {
     const off = onMessage((m) => {
@@ -74,9 +87,22 @@ export function SettingsApp() {
           setCostToday(m.payload.costToday)
           setCostTotal(m.payload.costTotal)
           if (m.payload.achievements) setAchievements(m.payload.achievements)
+          if (m.payload.bridge) setBridgeStatus(m.payload.bridge)
           break
         case 'settingsUpdated':
           setSettings(m.payload.settings)
+          break
+        case 'bridgeStatus':
+          setBridgeStatus(m.payload)
+          break
+        case 'bridgeResult':
+          setBridgeBusy(false)
+          if (m.payload.ok) {
+            setBridgeOtp('')
+            setBridgeMsg({ ok: true, text: 'Спарено ✓' })
+          } else {
+            setBridgeMsg({ ok: false, text: m.payload.message || 'Ошибка' })
+          }
           break
         case 'cost':
           setCostToday(m.payload.today)
@@ -208,6 +234,109 @@ export function SettingsApp() {
                 <span className="text-[11px] text-muted-foreground">
                   Если нет CLI: <code className="font-mono">npm i -g @anthropic-ai/claude-code &amp;&amp; claude setup-token</code>
                 </span>
+              </div>
+            </Section>
+          )}
+
+          {active === 'mobile' && (
+            <Section title="Cockpit Mobile — пульт твоего AI с телефона">
+              <div className="space-y-4 text-sm">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span
+                    className={`flex items-center gap-2 border-2 px-2 py-1 font-mono text-xs ${
+                      bridgeStatus?.paired
+                        ? 'border-pixel-lime/60 text-pixel-lime'
+                        : 'border-pixel-coral/60 text-pixel-coral'
+                    }`}
+                  >
+                    <Px name="smartphone" className="size-3.5" />
+                    {bridgeStatus?.paired ? 'спарен' : 'не спарен'}
+                  </span>
+                  {bridgeStatus?.pairLabel ? (
+                    <span className="text-[11px] text-muted-foreground">
+                      label: <code className="font-mono">{bridgeStatus.pairLabel}</code>
+                    </span>
+                  ) : null}
+                  {bridgeStatus?.pairedAt ? (
+                    <span className="text-[11px] text-muted-foreground">
+                      paired {new Date(bridgeStatus.pairedAt).toLocaleString()}
+                    </span>
+                  ) : null}
+                </div>
+
+                {bridgeStatus?.paired ? (
+                  <div className="space-y-2">
+                    <p className="text-xs text-muted-foreground">
+                      Открой <code className="font-mono">@CockpitMobileBot</code> в Telegram и
+                      жми «🦈 Открыть Cockpit Mobile» — сессии этого инстанса видны на телефоне.
+                    </p>
+                    <button
+                      onClick={() => {
+                        setBridgeMsg(null)
+                        setBridgeBusy(true)
+                        post({ type: 'bridgeRevoke' })
+                      }}
+                      disabled={bridgeBusy}
+                      className="border-2 border-foreground bg-pixel-coral/20 px-3 py-1 text-xs font-semibold shadow-[2px_2px_0_0_var(--foreground)] hover:bg-pixel-coral/40 disabled:opacity-50"
+                    >
+                      Отвязать телефон
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <ol className="list-decimal space-y-1 pl-5 text-xs text-muted-foreground">
+                      <li>
+                        Открой <code className="font-mono">@CockpitMobileBot</code> в Telegram и
+                        отправь команду <code className="font-mono">/pair</code>.
+                      </li>
+                      <li>Бот пришлёт 6-значный код. Введи его сюда ↓.</li>
+                      <li>Код одноразовый, живёт 5 минут.</li>
+                    </ol>
+                    <form
+                      onSubmit={(e) => {
+                        e.preventDefault()
+                        if (!/^\d{6}$/.test(bridgeOtp.trim())) return
+                        setBridgeMsg(null)
+                        setBridgeBusy(true)
+                        post({ type: 'bridgePair', payload: { otp: bridgeOtp.trim() } })
+                      }}
+                      className="flex flex-wrap items-center gap-2"
+                    >
+                      <input
+                        inputMode="numeric"
+                        pattern="\d{6}"
+                        maxLength={6}
+                        value={bridgeOtp}
+                        onChange={(e) => setBridgeOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                        placeholder="123456"
+                        className="w-32 border-2 border-foreground bg-background px-2 py-1 font-mono text-base tracking-widest outline-none"
+                      />
+                      <button
+                        type="submit"
+                        disabled={bridgeBusy || !/^\d{6}$/.test(bridgeOtp.trim())}
+                        className="border-2 border-foreground bg-pixel-lime px-3 py-1 text-xs font-semibold text-black shadow-[2px_2px_0_0_var(--foreground)] hover:bg-pixel-cyan disabled:opacity-50"
+                      >
+                        {bridgeBusy ? 'жду…' : 'Спарить'}
+                      </button>
+                    </form>
+                  </div>
+                )}
+
+                {bridgeMsg ? (
+                  <div
+                    className={`border-2 px-2 py-1 text-xs ${
+                      bridgeMsg.ok
+                        ? 'border-pixel-lime/60 text-pixel-lime'
+                        : 'border-pixel-coral/60 text-pixel-coral'
+                    }`}
+                  >
+                    {bridgeMsg.text}
+                  </div>
+                ) : null}
+
+                <p className="text-[11px] text-muted-foreground">
+                  instance_id: <code className="font-mono">{bridgeStatus?.instanceId || '…'}</code>
+                </p>
               </div>
             </Section>
           )}
