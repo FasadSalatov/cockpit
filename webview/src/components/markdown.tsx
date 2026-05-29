@@ -91,6 +91,12 @@ function MermaidBlock({ code }: { code: string }) {
 function CodeBlock({ className, children }: ComponentPropsWithoutRef<'code'>) {
   const lang = /language-([\w-]+)/.exec(className ?? '')?.[1]
   const raw = String(children ?? '').replace(/\n$/, '')
+  // Inline code: no language hint AND no newlines → render verbatim, no
+  // highlighting. lowlight.highlightAuto on short snippets often produces an
+  // empty hast tree which renders as an empty <code> box.
+  if (!lang && !raw.includes('\n')) {
+    return <code>{children}</code>
+  }
   if (lang === 'mermaid') return <MermaidBlock code={raw} />
   const tree = highlight(raw, lang)
   const rendered = toJsxRuntime(tree as any, { Fragment, jsx, jsxs }) as React.ReactNode

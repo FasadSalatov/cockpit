@@ -369,7 +369,13 @@
   background: var(--pixel-magenta);
 }
 .md ol {
-  padding-left: 1.4rem;
+  /* Tailwind preflight wipes list-style on ol; restore decimal markers. */
+  list-style: decimal outside;
+  padding-left: 1.6rem;
+}
+.md ol li::marker {
+  color: var(--pixel-cyan);
+  font-family: var(--font-mono);
 }
 .md h1,
 .md h2,
