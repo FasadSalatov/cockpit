@@ -18,6 +18,17 @@ export type ServerEvent =
     }
   | { t: 'session.closed'; instanceId: string; sessionId: string }
   | {
+      t: 'session.snapshot'
+      instanceId: string
+      sessions: {
+        sessionId: string
+        title?: string
+        firstPrompt?: string
+        cwd?: string
+        lastModified?: number
+      }[]
+    }
+  | {
       t: 'msg.delta'
       instanceId: string
       sessionId: string

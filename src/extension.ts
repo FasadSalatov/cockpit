@@ -661,11 +661,19 @@ export function activate(context: vscode.ExtensionContext) {
   // ── Cockpit Bridge (mobile companion) ─────────────────────────────────────
   bridge = new BridgeHost(context, {
     onPhonePrompt: async (sidFromPhone, text) => {
-      if (sidFromPhone && sidFromPhone !== sessionId) {
+      // Surface the chat window so the desktop user sees what the phone just
+      // injected — otherwise prompts disappear into the void with no UI.
+      await openPanel(context)
+      const isNew = sidFromPhone === 'new' || !sidFromPhone
+      if (isNew) {
+        // Start a fresh session — host emits session.opened with the real
+        // uuid, which the miniapp listens for to re-subscribe.
+        sessionId = undefined
+      } else if (sidFromPhone !== sessionId) {
         try {
           await loadSession(context, sidFromPhone)
         } catch {
-          // session may not exist anymore — just submit into current session
+          // session may not exist anymore — fall through to current session
         }
       }
       await onPrompt(context, text)
@@ -683,6 +691,27 @@ export function activate(context: vscode.ExtensionContext) {
       } catch {}
     },
     getActiveSessionId: () => sessionId,
+    getInitialSessions: async () => {
+      try {
+        const sdk = await import('@anthropic-ai/claude-agent-sdk')
+        const cwd = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath
+        const list = await sdk.listSessions({ dir: cwd, limit: 100 })
+        return list.map((s) => ({
+          sessionId: s.sessionId,
+          title:
+            s.customTitle ||
+            s.summary ||
+            s.firstPrompt?.slice(0, 60) ||
+            undefined,
+          firstPrompt: s.firstPrompt ?? undefined,
+          cwd: s.cwd ?? undefined,
+          lastModified: typeof s.lastModified === 'number' ? s.lastModified : undefined,
+        }))
+      } catch (e) {
+        console.warn('[cockpit] getInitialSessions failed:', e)
+        return []
+      }
+    },
   })
   void bridge.init()
   context.subscriptions.push(bridge)
