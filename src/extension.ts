@@ -1251,8 +1251,16 @@ async function loadSession(context: vscode.ExtensionContext, id: string) {
   try {
     const sdk = await import('@anthropic-ai/claude-agent-sdk')
     const cwd = getSdkCwd()
-    const raw = await sdk.getSessionMessages(id, { dir: cwd, limit: 500 })
-    const messages = convertSessionMessages(raw)
+    // SDK returns messages in chronological order (oldest first) and limit
+    // truncates the *tail* — so `limit: 500` on a 2000-message chat hides the
+    // freshest entries. Load everything, slice the latest UI_LIMIT.
+    const UI_LIMIT = 500
+    const all = await sdk.getSessionMessages(id, { dir: cwd, limit: 100_000 })
+    const slice = all.length > UI_LIMIT ? all.slice(-UI_LIMIT) : all
+    const messages = convertSessionMessages(slice)
+    console.log(
+      `[cockpit] loadSession(${id.slice(0, 8)}…) total=${all.length} shown=${messages.length}`,
+    )
     sessionId = id
     await openPanel(context)
     postToMain({ type: 'sessionLoaded', payload: { messages, sessionId: id } })
