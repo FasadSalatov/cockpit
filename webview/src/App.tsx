@@ -326,8 +326,23 @@ export function App() {
         : (el) => el?.getBoundingClientRect().height,
   })
 
+  // Track whether the user is parked at the bottom — auto-scroll only when
+  // they're following along. Otherwise leave their reading position alone.
+  const isAtBottomRef = useRef(true)
+  useEffect(() => {
+    const el = feedRef.current
+    if (!el) return
+    const onScroll = () => {
+      const distFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight
+      isAtBottomRef.current = distFromBottom < 80
+    }
+    el.addEventListener('scroll', onScroll, { passive: true })
+    return () => el.removeEventListener('scroll', onScroll)
+  }, [])
+
   useEffect(() => {
     if (messages.length === 0) return
+    if (!isAtBottomRef.current) return
     virtualizer.scrollToIndex(messages.length - 1, { align: 'end' })
   }, [messages.length, virtualizer])
 
