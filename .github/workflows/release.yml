@@ -1,0 +1,92 @@
+name: Release
+
+# Срабатывает при пуше тега вида v* (например, v0.4.4 или v1.0.0).
+# Собирает vsix, создаёт GitHub Release, публикует в VS Code Marketplace и Open VSX.
+#
+# Требуемые GitHub Secrets:
+#   VSCE_PAT  — Personal Access Token из Azure DevOps со scope Marketplace → Manage
+#   OVSX_PAT  — токен из open-vsx.org/user-settings/tokens (опционально, если хочешь Open VSX)
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Тег для перепубликации (например v0.4.4)'
+        required: false
+
+permissions:
+  contents: write  # для создания GitHub Release
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.inputs.tag || github.ref }}
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+
+      - name: Install dependencies (pnpm)
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Generate themes
+        run: node scripts/gen-themes.mjs
+
+      - name: Build (webview + extension host)
+        run: pnpm build
+
+      # vsce плохо дружит с pnpm-симлинками: --no-dependencies даёт runtime
+      # ERR_MODULE_NOT_FOUND, обычный режим — npm list --production падает на
+      # extraneous. Workaround: пакуем под чистый npm-флэт layout.
+      - name: Swap to npm flat layout for packaging
+        run: |
+          rm -rf node_modules
+          rm -f package-lock.json
+          npm install --omit=dev --legacy-peer-deps --no-audit --no-fund
+
+      - name: Package vsix
+        run: npx --yes @vscode/vsce@latest package
+
+      - name: Find vsix
+        id: vsix
+        run: |
+          F=$(ls -1 *.vsix | head -1)
+          echo "file=$F" >> "$GITHUB_OUTPUT"
+          echo "✓ Packaged: $F"
+
+      - name: Publish to VS Code Marketplace
+        if: env.VSCE_PAT != ''
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+        run: npx --yes @vscode/vsce@latest publish --packagePath "${{ steps.vsix.outputs.file }}"
+
+      - name: Publish to Open VSX
+        if: env.OVSX_PAT != ''
+        env:
+          OVSX_PAT: ${{ secrets.OVSX_PAT }}
+        run: npx --yes ovsx@latest publish "${{ steps.vsix.outputs.file }}" -p "$OVSX_PAT"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ steps.vsix.outputs.file }}
+          generate_release_notes: true
+          fail_on_unmatched_files: true
+          name: ${{ github.ref_name }}
+          tag_name: ${{ github.event.inputs.tag || github.ref_name }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
