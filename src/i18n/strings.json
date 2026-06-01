@@ -315,5 +315,78 @@
   "settings.limits.overage": { "ru": "перерасход", "en": "overage" },
 
   "settings.ach.title": { "ru": "Достижения", "en": "Achievements" },
-  "settings.ach.locked": { "ru": "Заблокировано", "en": "Locked" }
+  "settings.ach.locked": { "ru": "Заблокировано", "en": "Locked" },
+
+  "settings.section.appearance.theme": { "ru": "Тема", "en": "Theme" },
+  "settings.section.appearance.customTheme": {
+    "ru": "Своя тема (применяется при выборе «Своя»)",
+    "en": "Custom theme (applied when «Custom» selected)"
+  },
+  "settings.section.appearance.scale": { "ru": "Масштаб интерфейса", "en": "Interface scale" },
+  "settings.section.appearance.animations": { "ru": "Анимации", "en": "Animations" },
+  "settings.section.behavior.system": {
+    "ru": "Системный промпт (добавляется к default)",
+    "en": "System prompt (appended to default)"
+  },
+  "settings.section.behavior.turns": {
+    "ru": "Лимит итераций (max turns, 0 = без лимита)",
+    "en": "Iteration limit (max turns, 0 = unlimited)"
+  },
+  "settings.section.behavior.autoContext": {
+    "ru": "Авто-контекст в каждом запросе",
+    "en": "Auto-context in each request"
+  },
+  "settings.section.behavior.notifications": { "ru": "Уведомления", "en": "Notifications" },
+  "settings.section.behavior.agent": { "ru": "Режим работы агента", "en": "Agent mode" },
+  "settings.section.security.bash": {
+    "ru": "Запрещённые Bash-паттерны (regex или substring через пробел)",
+    "en": "Forbidden bash patterns (regex or substring, space-separated)"
+  },
+  "settings.section.security.budgets": { "ru": "Бюджеты", "en": "Budgets" },
+  "settings.section.memory.workspace": {
+    "ru": "Память воркспейса (CLAUDE.md)",
+    "en": "Workspace memory (CLAUDE.md)"
+  },
+  "settings.section.prompts.title": {
+    "ru": "Шаблоны промптов (.cockpit/prompts/*.md)",
+    "en": "Prompt templates (.cockpit/prompts/*.md)"
+  },
+  "settings.section.limits.title": {
+    "ru": "Лимиты подписки Claude",
+    "en": "Claude subscription limits"
+  },
+  "settings.section.account.title": {
+    "ru": "Подключение Claude (подписка)",
+    "en": "Claude connection (subscription)"
+  },
+  "settings.tooltip.autoImport": {
+    "ru": "Прочитать токен из системы (нужен установленный Claude CLI после setup-token)",
+    "en": "Read token from system (requires Claude CLI installed after setup-token)"
+  },
+
+  "chat.greeting.subtitle.ready": {
+    "ru": "Покажу как сделать, объясню код, починю баги.",
+    "en": "I'll show how to build it, explain code, fix bugs."
+  },
+  "chat.greeting.noTokenLine": {
+    "ru": "Сначала задай токен подписки в настройках.",
+    "en": "Set the subscription token in settings first."
+  },
+  "chat.greeting.hints": { "ru": "Попробуй:", "en": "Try:" },
+  "chat.input.send.label": { "ru": "Отправить", "en": "Send" },
+  "chat.input.stop.label": { "ru": "Стоп", "en": "Stop" },
+  "chat.input.help": { "ru": "Помощь", "en": "Help" },
+  "chat.quick.findBySense.title": { "ru": "Найти по смыслу", "en": "Semantic search" },
+  "chat.quick.findBySense.hint": {
+    "ru": "Семантический поиск по коду",
+    "en": "Semantic search across code"
+  },
+  "chat.quick.tests.title": { "ru": "Прогнать тесты", "en": "Run tests" },
+  "chat.quick.tests.hint": { "ru": "Запустить и починить fail", "en": "Run and fix failures" },
+  "chat.quick.loop.title": { "ru": "Loop до зелёного", "en": "Loop to green" },
+  "chat.quick.loop.hint": { "ru": "Агент гоняет тесты циклом", "en": "Agent loops tests until pass" },
+  "chat.quick.docs.title": { "ru": "Документация", "en": "Documentation" },
+  "chat.quick.docs.hint": { "ru": "Вся справка по командам", "en": "All command reference" },
+  "chat.newSession.label": { "ru": "новая сессия", "en": "new session" },
+  "chat.share.label": { "ru": "поделиться", "en": "share" }
 }

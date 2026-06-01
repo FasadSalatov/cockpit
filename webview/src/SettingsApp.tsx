@@ -7,7 +7,9 @@ import type {
 import { DEFAULT_SETTINGS } from '../../src/protocol'
 import { onMessage, post } from './vscode'
 import { Px } from './components/px'
-import { LocaleContext, translate as translateInline, useT, type Locale } from './i18n'
+import { LocaleContext, translate as tx, useT, type Locale } from './i18n'
+
+const translateInline = tx
 import {
   ACHIEVEMENTS_META,
   CUSTOM_THEME_FIELDS,
@@ -260,7 +262,7 @@ export function SettingsApp() {
       <main className="flex-1 overflow-y-auto p-6">
         <div className="mx-auto max-w-2xl space-y-6">
           {active === 'account' && (
-            <Section title="Подключение Claude (подписка)">
+            <Section title={tx('settings.section.account.title', locale)}>
               <div className="flex flex-wrap items-center gap-2">
                 <span
                   className={`flex items-center gap-2 border-2 px-2 py-1 font-mono text-xs ${
@@ -275,7 +277,7 @@ export function SettingsApp() {
                 <button
                   onClick={() => post({ type: 'autoImportToken' })}
                   className="border-2 border-foreground bg-pixel-lime px-3 py-1 text-xs font-semibold text-black shadow-[2px_2px_0_0_var(--foreground)] hover:bg-pixel-cyan"
-                  title="Прочитать токен из macOS Keychain (нужен установленный Claude CLI после setup-token)"
+                  title={tx('settings.tooltip.autoImport', locale)}
                 >
                   🦈 Подхватить из Claude CLI
                 </button>
@@ -423,7 +425,7 @@ export function SettingsApp() {
 
           {active === 'appearance' && (
             <>
-              <Section title="Тема">
+              <Section title={tx('settings.section.appearance.theme', locale)}>
                 <div className="grid grid-cols-3 gap-3 sm:grid-cols-4">
                   {THEMES.map((t) => {
                     const p = THEME_PREVIEW[t.id]
@@ -453,7 +455,7 @@ export function SettingsApp() {
                 </div>
               </Section>
 
-              <Section title="Своя тема (применяется при выборе «Своя»)">
+              <Section title={tx('settings.section.appearance.customTheme', locale)}>
                 <div className="grid grid-cols-2 gap-2">
                   {CUSTOM_THEME_FIELDS.map((f) => {
                     const v = settings.customTheme[f.key] || f.default
@@ -487,7 +489,7 @@ export function SettingsApp() {
                 </div>
               </Section>
 
-              <Section title="Масштаб интерфейса">
+              <Section title={tx('settings.section.appearance.scale', locale)}>
                 <div className="flex flex-wrap gap-2">
                   {[0.85, 1, 1.15, 1.3].map((s) => {
                     const a = Math.abs(settings.fontScale - s) < 0.01
@@ -508,7 +510,7 @@ export function SettingsApp() {
                 </div>
               </Section>
 
-              <Section title="Анимации">
+              <Section title={tx('settings.section.appearance.animations', locale)}>
                 <label className="flex cursor-pointer items-center gap-2 text-xs">
                   <input
                     type="checkbox"
@@ -524,7 +526,7 @@ export function SettingsApp() {
 
           {active === 'behavior' && (
             <>
-              <Section title="Системный промпт (добавляется к default)">
+              <Section title={tx('settings.section.behavior.system', locale)}>
                 <div className="mb-2 flex flex-wrap gap-1.5">
                   {SYSTEM_PRESETS.map((p) => (
                     <button
@@ -553,7 +555,7 @@ export function SettingsApp() {
                 />
               </Section>
 
-              <Section title="Лимит итераций (max turns, 0 = без лимита)">
+              <Section title={tx('settings.section.behavior.turns', locale)}>
                 <input
                   type="number"
                   min={0}
@@ -563,7 +565,7 @@ export function SettingsApp() {
                 />
               </Section>
 
-              <Section title="Авто-контекст в каждом запросе">
+              <Section title={tx('settings.section.behavior.autoContext', locale)}>
                 <label className="flex cursor-pointer items-center gap-2 text-xs">
                   <input
                     type="checkbox"
@@ -601,7 +603,7 @@ export function SettingsApp() {
                 </div>
               </Section>
 
-              <Section title="Уведомления">
+              <Section title={tx('settings.section.behavior.notifications', locale)}>
                 <label className="flex cursor-pointer items-center gap-2 text-xs">
                   <input
                     type="checkbox"
@@ -617,7 +619,7 @@ export function SettingsApp() {
 
           {active === 'security' && (
             <>
-              <Section title="Режим работы агента">
+              <Section title={tx('settings.section.behavior.agent', locale)}>
                 <div className="grid gap-2">
                   {(
                     [
@@ -683,7 +685,7 @@ export function SettingsApp() {
                 <p className="mt-1 text-[11px] text-muted-foreground">Пусто = всё разрешено.</p>
               </Section>
 
-              <Section title="Запрещённые Bash-паттерны (regex или substring через пробел)">
+              <Section title={tx('settings.section.security.bash', locale)}>
                 <textarea
                   rows={2}
                   value={settings.customDisallowBash}
@@ -717,7 +719,7 @@ export function SettingsApp() {
                 </label>
               </Section>
 
-              <Section title="Бюджеты">
+              <Section title={tx('settings.section.security.budgets', locale)}>
                 <div className="flex flex-wrap items-center gap-2 text-xs">
                   <span>День $</span>
                   <input
@@ -791,7 +793,7 @@ export function SettingsApp() {
           )}
 
           {active === 'memory' && (
-            <Section title="Память воркспейса (CLAUDE.md)">
+            <Section title={tx('settings.section.memory.workspace', locale)}>
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => post({ type: 'openWorkspaceMemory' })}
@@ -816,7 +818,7 @@ export function SettingsApp() {
           )}
 
           {active === 'prompts' && (
-            <Section title="Шаблоны промптов (.cockpit/prompts/*.md)">
+            <Section title={tx('settings.section.prompts.title', locale)}>
               <PromptLibrary
                 prompts={prompts}
                 onLoad={() => post({ type: 'listPrompts' })}
@@ -830,7 +832,7 @@ export function SettingsApp() {
 
           {active === 'limits' && (
             <>
-              <Section title="Лимиты подписки Claude">
+              <Section title={tx('settings.section.limits.title', locale)}>
                 {Object.keys(limits).length === 0 ? (
                   <p className="text-xs text-muted-foreground">
                     Нет данных — отправь хотя бы один запрос в Cockpit.
@@ -925,7 +927,7 @@ export function SettingsApp() {
           )}
 
           {active === 'achievements' && (
-            <Section title="Достижения">
+            <Section title={tx('settings.ach.title', locale)}>
               <ul className="grid gap-2 sm:grid-cols-2">
                 {ACHIEVEMENTS_META.map((a) => {
                   const earned = achievements.includes(a.id)
