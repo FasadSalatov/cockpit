@@ -14,6 +14,14 @@ import type {
 import { DEFAULT_SETTINGS } from './protocol'
 import { runPrompt } from './agent'
 import { BridgeHost } from './bridge-host'
+import { resolveLocale, t as tt, type Locale } from './i18n'
+
+function currentLocale(context: vscode.ExtensionContext): Locale {
+  return resolveLocale(getSettings(context).locale)
+}
+function tHost(context: vscode.ExtensionContext, key: string, params?: Record<string, string | number>) {
+  return tt(key, currentLocale(context), params)
+}
 
 const TOKEN_KEY = 'cockpit.oauthToken'
 const THEME_KEY = 'cockpit.theme'
@@ -449,8 +457,8 @@ export function activate(context: vscode.ExtensionContext) {
 
   const setToken = vscode.commands.registerCommand('cockpit.setToken', async () => {
     const token = await vscode.window.showInputBox({
-      title: 'Cockpit — токен подписки',
-      prompt: 'Вставь CLAUDE_CODE_OAUTH_TOKEN (получить: claude setup-token)',
+      title: tHost(context, 'host.token.setTitle'),
+      prompt: tHost(context, 'host.token.setPrompt'),
       password: true,
       ignoreFocusOut: true,
     })
@@ -724,10 +732,10 @@ export function activate(context: vscode.ExtensionContext) {
 
   const quickAsk = vscode.commands.registerCommand('cockpit.quickAsk', async () => {
     const q = await vscode.window.showInputBox({
-      title: 'Cockpit · быстрый вопрос',
-      prompt: 'Спроси Клода (Enter — открыть Cockpit с этим промптом)',
+      title: tHost(context, 'host.quickAsk.title'),
+      prompt: tHost(context, 'host.quickAsk.prompt'),
       ignoreFocusOut: true,
-      placeHolder: 'например: что делает auth.ts?',
+      placeHolder: tHost(context, 'host.quickAsk.placeholder'),
     })
     if (!q?.trim()) return
     await openPanel(context)
@@ -801,32 +809,36 @@ export function activate(context: vscode.ExtensionContext) {
   const bridgePair = vscode.commands.registerCommand('cockpit.bridge.pair', async () => {
     if (!bridge) return
     const otp = await vscode.window.showInputBox({
-      title: 'Cockpit Mobile · Pair Phone',
-      prompt: 'Enter the 6-digit OTP from @CockpitMobileBot',
+      title: tHost(context, 'host.bridge.pairTitle'),
+      prompt: tHost(context, 'host.bridge.pairPrompt'),
       placeHolder: '123456',
       ignoreFocusOut: true,
-      validateInput: (v) => (/^\d{6}$/.test(v.trim()) ? undefined : 'Need 6 digits'),
+      validateInput: (v) =>
+        /^\d{6}$/.test(v.trim()) ? undefined : tHost(context, 'host.bridge.needDigits'),
     })
     if (!otp) return
     const res = await bridgeClaim(otp)
     if (!res.ok) {
-      vscode.window.showErrorMessage(`Cockpit Mobile · pair failed: ${res.message ?? ''}`)
+      vscode.window.showErrorMessage(
+        tHost(context, 'host.bridge.pairFailed', { error: res.message ?? '' }),
+      )
       return
     }
-    vscode.window.showInformationMessage('🦈 Cockpit Mobile paired ✓')
+    vscode.window.showInformationMessage(tHost(context, 'host.bridge.paired'))
     broadcastBridgeStatus()
   })
 
   const bridgeRevoke = vscode.commands.registerCommand('cockpit.bridge.revoke', async () => {
     if (!bridge) return
+    const revokeLabel = tHost(context, 'host.bridge.revokeBtn')
     const pick = await vscode.window.showWarningMessage(
-      'Revoke phone pairing? The Cockpit Mobile app will disconnect.',
+      tHost(context, 'host.bridge.revokeConfirm'),
       { modal: true },
-      'Revoke',
+      revokeLabel,
     )
-    if (pick !== 'Revoke') return
+    if (pick !== revokeLabel) return
     await bridge.revoke()
-    vscode.window.showInformationMessage('Cockpit Mobile pairing revoked.')
+    vscode.window.showInformationMessage(tHost(context, 'host.bridge.revoked'))
     broadcastBridgeStatus()
   })
 
@@ -932,6 +944,7 @@ async function sendReady(context: vscode.ExtensionContext, view: 'main' | 'sideb
       settings: getSettings(context),
       achievements: context.globalState.get<string[]>(ACH_KEY) ?? [],
       bridge: bridge?.getStatus(),
+      locale: currentLocale(context),
     },
   }
   if (view === 'main') postToMain(msg)
@@ -1077,12 +1090,12 @@ async function handleMessage(
     case 'voiceInput': {
       const isMac = process.platform === 'darwin'
       const tip = isMac
-        ? 'Голос: двойной Fn запустит macOS Dictation. Enter — отправить текст в Cockpit.'
-        : 'Голос: Win+H запустит системную диктовку. Enter — отправить текст в Cockpit.'
+        ? tHost(context, 'host.voice.tipMac')
+        : tHost(context, 'host.voice.tipWin')
       const text = await vscode.window.showInputBox({
-        title: 'Cockpit · голосовой ввод',
+        title: tHost(context, 'host.voice.title'),
         prompt: tip,
-        placeHolder: 'Начни диктовку…',
+        placeHolder: tHost(context, 'host.voice.placeholder'),
         ignoreFocusOut: true,
       })
       if (text?.trim()) postToMain({ type: 'prefill', payload: { text: text.trim() } })
@@ -1183,7 +1196,7 @@ async function onPrompt(
   if (!auth) {
     postToMain({
       type: 'error',
-      payload: { message: 'Нет токена. Нажми «Задать токен» и вставь CLAUDE_CODE_OAUTH_TOKEN.' },
+      payload: { message: tHost(context, 'host.token.missing') },
     })
     return
   }
@@ -1297,8 +1310,9 @@ async function onPrompt(
   const settings = getSettings(context)
   const inFocus = vscode.window.state.focused && panel?.active
   if (settings.notifyOnDone && elapsed > 8000 && !inFocus) {
-    vscode.window.showInformationMessage('Cockpit: ответ готов', 'Открыть').then((pick) => {
-      if (pick === 'Открыть') void openPanel(context)
+    const openLabel = tHost(context, 'host.notify.open')
+    vscode.window.showInformationMessage(tHost(context, 'host.notify.answerReady'), openLabel).then((pick) => {
+      if (pick === openLabel) void openPanel(context)
     })
   }
 }
@@ -1313,7 +1327,7 @@ async function sendSessions(context: vscode.ExtensionContext) {
     console.log(`[cockpit] sendSessions(dir=${cwd ?? '<none>'}) → ${list.length} items`)
     const items: SessionEntry[] = list.map((s) => ({
       sessionId: s.sessionId,
-      title: s.customTitle || s.summary || s.firstPrompt?.slice(0, 60) || 'Без названия',
+      title: s.customTitle || s.summary || s.firstPrompt?.slice(0, 60) || tHost(context, 'session.untitled'),
       lastModified: s.lastModified,
       firstPrompt: s.firstPrompt,
       cwd: s.cwd,

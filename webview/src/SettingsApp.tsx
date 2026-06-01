@@ -7,6 +7,7 @@ import type {
 import { DEFAULT_SETTINGS } from '../../src/protocol'
 import { onMessage, post } from './vscode'
 import { Px } from './components/px'
+import { LocaleContext, useT, type Locale } from './i18n'
 import {
   ACHIEVEMENTS_META,
   CUSTOM_THEME_FIELDS,
@@ -62,6 +63,7 @@ type BridgeCode =
 
 export function SettingsApp() {
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS)
+  const [locale, setLocale] = useState<Locale>('en')
   const [theme, setTheme] = useState('arcade')
   const [hasToken, setHasToken] = useState(false)
   const [costToday, setCostToday] = useState(0)
@@ -94,6 +96,7 @@ export function SettingsApp() {
           setCostTotal(m.payload.costTotal)
           if (m.payload.achievements) setAchievements(m.payload.achievements)
           if (m.payload.bridge) setBridgeStatus(m.payload.bridge)
+          if (m.payload.locale) setLocale(m.payload.locale)
           break
         case 'settingsUpdated':
           setSettings(m.payload.settings)
@@ -205,6 +208,7 @@ export function SettingsApp() {
   }, [search])
 
   return (
+    <LocaleContext.Provider value={locale}>
     <div className="flex h-full overflow-hidden bg-background text-foreground">
       {/* боковая навигация */}
       <aside className="flex w-56 shrink-0 flex-col border-r-2 border-border bg-card/50">
@@ -276,6 +280,7 @@ export function SettingsApp() {
                   Если нет CLI: <code className="font-mono">npm i -g @anthropic-ai/claude-code &amp;&amp; claude setup-token</code>
                 </span>
               </div>
+              <LocaleSelector value={settings.locale} onChange={(v) => update({ locale: v })} />
             </Section>
           )}
 
@@ -937,6 +942,44 @@ export function SettingsApp() {
           )}
         </div>
       </main>
+    </div>
+    </LocaleContext.Provider>
+  )
+}
+
+function LocaleSelector({
+  value,
+  onChange,
+}: {
+  value: 'auto' | 'ru' | 'en'
+  onChange: (v: 'auto' | 'ru' | 'en') => void
+}) {
+  const t = useT()
+  const opts: { v: 'auto' | 'ru' | 'en'; label: string }[] = [
+    { v: 'auto', label: t('settings.account.localeAuto') },
+    { v: 'ru', label: t('settings.account.localeRu') },
+    { v: 'en', label: t('settings.account.localeEn') },
+  ]
+  return (
+    <div className="mt-3 flex flex-wrap items-center gap-2">
+      <span className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
+        {t('settings.account.locale')}:
+      </span>
+      <div className="flex gap-1">
+        {opts.map((o) => (
+          <button
+            key={o.v}
+            onClick={() => onChange(o.v)}
+            className={`border-2 border-foreground px-2 py-1 text-xs font-semibold shadow-[2px_2px_0_0_var(--foreground)] ${
+              value === o.v
+                ? 'bg-pixel-magenta text-white'
+                : 'bg-background hover:bg-pixel-magenta/15'
+            }`}
+          >
+            {o.label}
+          </button>
+        ))}
+      </div>
     </div>
   )
 }

@@ -55,6 +55,7 @@ export interface Settings {
   pomodoroMinutes: number // 0 = выкл
   companionEnabled: boolean
   speculativeHaiku: boolean
+  locale: 'auto' | 'ru' | 'en'
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -79,6 +80,7 @@ export const DEFAULT_SETTINGS: Settings = {
   pomodoroMinutes: 0,
   companionEnabled: true,
   speculativeHaiku: false,
+  locale: 'auto',
 }
 
 export interface PromptTemplate {
@@ -114,6 +116,9 @@ export type HostToWebview =
         settings: Settings
         achievements?: string[]
         bridge?: { paired: boolean; instanceId: string; pairedAt?: number; pairLabel?: string }
+        /** Resolved effective locale — `auto` setting -> 'ru' if VSCode UI is
+         *  Russian, else 'en'. Webview uses this for its i18n. */
+        locale: 'ru' | 'en'
       }
     }
   | { type: 'streamStart' }
