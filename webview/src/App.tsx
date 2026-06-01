@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useVirtualizer } from '@tanstack/react-virtual'
-import { LocaleContext, type Locale } from './i18n'
+import { LocaleContext, translate as tx, useT, type Locale } from './i18n'
 import type {
   PermissionDetail,
   FileEntry,
@@ -1042,7 +1042,9 @@ export function App() {
           onKeyDown={onKeyDown}
           onPaste={onPaste}
           placeholder={
-            hasToken ? 'Спроси что-нибудь о коде…  (Enter — отправить)' : 'Сначала задай токен подписки'
+            hasToken
+              ? tx('chat.input.placeholder', locale)
+              : tx('chat.greeting.noToken', locale)
           }
           rows={2}
           disabled={busy && !awaitingPermission}
@@ -1053,7 +1055,7 @@ export function App() {
             variant="outline"
             className="h-auto w-14 self-stretch"
             onClick={stop}
-            title="Остановить"
+            title={tx('chat.input.stop', locale)}
           >
             <Px name="close" className="size-5" />
           </Button>
@@ -1063,7 +1065,7 @@ export function App() {
             className="h-auto w-14 self-stretch"
             onClick={send}
             disabled={!input.trim() && attachments.length === 0}
-            title="Отправить"
+            title={tx('chat.input.send', locale)}
           >
             <Px name="send" className="size-5" />
           </Button>
@@ -1087,6 +1089,7 @@ function Greeting({
   onQuick: (text: string) => void
   onRefreshJoke: () => void
 }) {
+  const t = useT()
   const [i, setI] = useState(() => Math.floor(Math.random() * JOKES.length))
   useEffect(() => {
     const t = setInterval(() => setI((p) => (p + 1) % JOKES.length), 8000)
@@ -1094,10 +1097,10 @@ function Greeting({
   }, [])
 
   const actions: { emoji: string; title: string; hint: string; text: string }[] = [
-    { emoji: '🔍', title: 'Найти по смыслу', hint: 'Семантический поиск по коду', text: '/find где регистрируется аутентификация' },
-    { emoji: '🧪', title: 'Прогнать тесты', hint: 'Запустить и починить fail', text: '/tests' },
-    { emoji: '🔁', title: 'Loop до зелёного', hint: 'Агент гоняет тесты циклом', text: '/loop pnpm test' },
-    { emoji: '📚', title: 'Документация', hint: 'Вся справка по командам', text: '/help' },
+    { emoji: '🔍', title: t('chat.quick.findBySense.title'), hint: t('chat.quick.findBySense.hint'), text: '/find где регистрируется аутентификация' },
+    { emoji: '🧪', title: t('chat.quick.tests.title'), hint: t('chat.quick.tests.hint'), text: '/tests' },
+    { emoji: '🔁', title: t('chat.quick.loop.title'), hint: t('chat.quick.loop.hint'), text: '/loop pnpm test' },
+    { emoji: '📚', title: t('chat.quick.docs.title'), hint: t('chat.quick.docs.hint'), text: '/help' },
   ]
 
   const joke = liveJoke ?? JOKES[i]
