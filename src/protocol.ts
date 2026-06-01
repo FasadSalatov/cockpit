@@ -148,7 +148,7 @@ export type HostToWebview =
   | { type: 'sessionLoaded'; payload: { messages: HistoryMsg[]; sessionId: string } }
   | { type: 'files'; payload: { query: string; items: FileEntry[] } }
   | { type: 'prefill'; payload: { text: string } }
-  | { type: 'settingsUpdated'; payload: { settings: Settings } }
+  | { type: 'settingsUpdated'; payload: { settings: Settings; locale: 'ru' | 'en' } }
   | { type: 'subagents'; payload: { items: string[] } }
   | { type: 'prompts'; payload: { items: PromptTemplate[] } }
   | { type: 'memoryChanged' }

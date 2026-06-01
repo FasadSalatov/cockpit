@@ -219,6 +219,7 @@ export function App() {
           break
         case 'settingsUpdated':
           setSettings(msg.payload.settings)
+          if (msg.payload.locale) setLocale(msg.payload.locale)
           break
         case 'subagents':
           setSubagents(msg.payload.items)

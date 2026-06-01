@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import type { SessionEntry } from '../../src/protocol'
 import { onMessage, post } from './vscode'
 import { Px } from './components/px'
-import { LocaleContext, type Locale } from './i18n'
+import { LocaleContext, translate, type Locale } from './i18n'
 
 function fmtTime(ts: number, locale: Locale) {
   const d = new Date(ts)
@@ -81,10 +81,10 @@ export function Sidebar() {
           className="flex items-center gap-1 border-2 border-foreground bg-pixel-magenta px-2 py-1 text-xs font-semibold text-white shadow-[2px_2px_0_0_var(--foreground)] hover:bg-pixel-pink active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
         >
           <Px name="plus" className="size-3.5" />
-          новый
+          {translate('sidebar.newSession', locale)}
         </button>
         <span className="ml-auto font-mono text-[11px] text-pixel-gold">
-          ${costToday.toFixed(2)} сегодня
+          ${costToday.toFixed(2)} {locale === 'ru' ? 'сегодня' : 'today'}
         </span>
       </div>
 
@@ -92,7 +92,7 @@ export function Sidebar() {
         <input
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
-          placeholder="Поиск…"
+          placeholder={translate('sidebar.search', locale)}
           className="w-full border-2 border-input bg-card px-2 py-1 text-xs outline-none placeholder:text-muted-foreground focus:border-pixel-magenta"
         />
       </div>
