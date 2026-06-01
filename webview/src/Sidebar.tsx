@@ -2,19 +2,23 @@ import { useEffect, useState } from 'react'
 import type { SessionEntry } from '../../src/protocol'
 import { onMessage, post } from './vscode'
 import { Px } from './components/px'
+import { LocaleContext, type Locale } from './i18n'
 
-function fmtTime(ts: number) {
+function fmtTime(ts: number, locale: Locale) {
   const d = new Date(ts)
   const today = new Date()
+  const lang = locale === 'ru' ? 'ru' : 'en'
   if (d.toDateString() === today.toDateString())
-    return d.toLocaleTimeString('ru', { hour: '2-digit', minute: '2-digit' })
+    return d.toLocaleTimeString(lang, { hour: '2-digit', minute: '2-digit' })
   const yesterday = new Date(today)
   yesterday.setDate(today.getDate() - 1)
-  if (d.toDateString() === yesterday.toDateString()) return 'вчера'
-  return d.toLocaleDateString('ru', { day: '2-digit', month: '2-digit' })
+  if (d.toDateString() === yesterday.toDateString())
+    return locale === 'ru' ? 'вчера' : 'yesterday'
+  return d.toLocaleDateString(lang, { day: '2-digit', month: '2-digit' })
 }
 
 export function Sidebar() {
+  const [locale, setLocale] = useState<Locale>('en')
   const [theme, setTheme] = useState('arcade')
   const [items, setItems] = useState<SessionEntry[]>([])
   const [currentId, setCurrentId] = useState<string | null>(null)
@@ -27,6 +31,7 @@ export function Sidebar() {
         case 'ready':
           setTheme(msg.payload.theme)
           setCostToday(msg.payload.costToday)
+          if (msg.payload.locale) setLocale(msg.payload.locale)
           break
         case 'cost':
           setCostToday(msg.payload.today)
@@ -68,6 +73,7 @@ export function Sidebar() {
   )
 
   return (
+    <LocaleContext.Provider value={locale}>
     <div className="flex h-full flex-col bg-background text-foreground">
       <div className="flex shrink-0 items-center gap-2 border-b-2 border-border bg-background px-2 py-2">
         <button
@@ -125,7 +131,7 @@ export function Sidebar() {
                 <div className="flex items-baseline justify-between gap-2">
                   <span className="line-clamp-2 flex-1 font-medium">{s.title}</span>
                   <span className="shrink-0 font-mono text-[10px] text-muted-foreground">
-                    {fmtTime(s.lastModified)}
+                    {fmtTime(s.lastModified, locale)}
                   </span>
                 </div>
                 <div className="mt-1 flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
@@ -166,5 +172,6 @@ export function Sidebar() {
         </ul>
       </div>
     </div>
+    </LocaleContext.Provider>
   )
 }

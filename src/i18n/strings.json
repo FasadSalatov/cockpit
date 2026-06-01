@@ -1,0 +1,319 @@
+{
+  "common.cancel": { "ru": "Отмена", "en": "Cancel" },
+  "common.copy": { "ru": "копировать", "en": "copy" },
+  "common.copied": { "ru": "скопировано ✓", "en": "copied ✓" },
+  "common.error": { "ru": "Ошибка", "en": "Error" },
+  "common.loading": { "ru": "Загрузка…", "en": "Loading…" },
+  "common.confirm": { "ru": "Подтвердить", "en": "Confirm" },
+  "common.delete": { "ru": "Удалить", "en": "Delete" },
+  "common.save": { "ru": "Сохранить", "en": "Save" },
+
+  "host.token.missing": {
+    "ru": "Нет токена. Нажми «Задать токен» и вставь CLAUDE_CODE_OAUTH_TOKEN.",
+    "en": "No token. Click \"Set token\" and paste CLAUDE_CODE_OAUTH_TOKEN."
+  },
+  "host.token.setPrompt": {
+    "ru": "Вставь CLAUDE_CODE_OAUTH_TOKEN (получить: claude setup-token)",
+    "en": "Paste CLAUDE_CODE_OAUTH_TOKEN (get it via: claude setup-token)"
+  },
+  "host.token.setTitle": { "ru": "Cockpit — токен подписки", "en": "Cockpit — subscription token" },
+  "host.token.imported": {
+    "ru": "🦈 Cockpit: токен подхвачен из {source}",
+    "en": "🦈 Cockpit: token imported from {source}"
+  },
+  "host.token.notFound": {
+    "ru": "Cockpit: не нашёл OAuth-токен в системе. Установи Claude CLI и выполни `claude setup-token`.",
+    "en": "Cockpit: OAuth token not found. Install Claude CLI and run `claude setup-token`."
+  },
+  "host.token.openInstructions": { "ru": "Открыть инструкцию", "en": "Open instructions" },
+  "host.token.importFailed": {
+    "ru": "Cockpit: не удалось импортировать токен — {error}",
+    "en": "Cockpit: token import failed — {error}"
+  },
+  "host.quickAsk.title": { "ru": "Cockpit · быстрый вопрос", "en": "Cockpit · quick ask" },
+  "host.quickAsk.prompt": {
+    "ru": "Спроси Клода (Enter — открыть Cockpit с этим промптом)",
+    "en": "Ask Claude (Enter — open Cockpit with this prompt)"
+  },
+  "host.quickAsk.placeholder": {
+    "ru": "например: что делает auth.ts?",
+    "en": "e.g. what does auth.ts do?"
+  },
+  "host.voice.tipMac": {
+    "ru": "Голос: двойной Fn запустит macOS Dictation. Enter — отправить текст в Cockpit.",
+    "en": "Voice: double-Fn starts macOS Dictation. Enter — send text to Cockpit."
+  },
+  "host.voice.tipWin": {
+    "ru": "Голос: Win+H запустит системную диктовку. Enter — отправить текст в Cockpit.",
+    "en": "Voice: Win+H starts system dictation. Enter — send text to Cockpit."
+  },
+  "host.voice.title": { "ru": "Cockpit · голосовой ввод", "en": "Cockpit · voice input" },
+  "host.voice.placeholder": { "ru": "Начни диктовку…", "en": "Start dictating…" },
+  "host.completions.toggled": {
+    "ru": "Cockpit completions: {state}",
+    "en": "Cockpit completions: {state}"
+  },
+  "host.completions.on": { "ru": "ВКЛ", "en": "ON" },
+  "host.completions.off": { "ru": "ВЫКЛ", "en": "OFF" },
+  "host.notify.answerReady": { "ru": "Cockpit: ответ готов", "en": "Cockpit: response ready" },
+  "host.notify.open": { "ru": "Открыть", "en": "Open" },
+  "host.budget.day": {
+    "ru": "Бюджет на день исчерпан ({spent} / {limit})",
+    "en": "Daily budget exhausted ({spent} / {limit})"
+  },
+  "host.budget.session": {
+    "ru": "Бюджет на сессию исчерпан ({spent} / {limit})",
+    "en": "Session budget exhausted ({spent} / {limit})"
+  },
+  "host.bridge.pairTitle": {
+    "ru": "Cockpit Mobile · Pair Phone",
+    "en": "Cockpit Mobile · Pair Phone"
+  },
+  "host.bridge.pairPrompt": {
+    "ru": "Введи 6 цифр из @CockpitMobileBot",
+    "en": "Enter the 6-digit OTP from @CockpitMobileBot"
+  },
+  "host.bridge.needDigits": { "ru": "Нужно 6 цифр", "en": "6 digits required" },
+  "host.bridge.paired": { "ru": "🦈 Cockpit Mobile спарен ✓", "en": "🦈 Cockpit Mobile paired ✓" },
+  "host.bridge.pairFailed": {
+    "ru": "Cockpit Mobile · pair failed: {error}",
+    "en": "Cockpit Mobile · pair failed: {error}"
+  },
+  "host.bridge.pairError": {
+    "ru": "Cockpit Mobile · pair error: {error}",
+    "en": "Cockpit Mobile · pair error: {error}"
+  },
+  "host.bridge.revokeConfirm": {
+    "ru": "Отвязать телефон? Cockpit Mobile разъединится.",
+    "en": "Revoke phone pairing? Cockpit Mobile will disconnect."
+  },
+  "host.bridge.revokeBtn": { "ru": "Отвязать", "en": "Revoke" },
+  "host.bridge.revoked": {
+    "ru": "Привязка Cockpit Mobile отозвана.",
+    "en": "Cockpit Mobile pairing revoked."
+  },
+
+  "achievements.first_session": {
+    "ru": "Первый запрос в Cockpit",
+    "en": "First request in Cockpit"
+  },
+  "achievements.ten_prompts_day": { "ru": "10 запросов за день", "en": "10 prompts in a day" },
+  "achievements.fifty_prompts_day": { "ru": "50 запросов за день", "en": "50 prompts in a day" },
+  "achievements.first_edit_approved": {
+    "ru": "Первая принятая правка",
+    "en": "First accepted edit"
+  },
+  "achievements.fifty_edits_day": { "ru": "50 правок за день", "en": "50 edits in a day" },
+  "achievements.first_fork": { "ru": "Первый форк сессии", "en": "First session fork" },
+  "achievements.night_owl": { "ru": "Ночная сова", "en": "Night owl" },
+
+  "session.untitled": { "ru": "Без названия", "en": "Untitled" },
+
+  "chat.greeting.title": { "ru": "Привет! 👋 Чем займёмся?", "en": "Hi! 👋 What's up?" },
+  "chat.greeting.subtitle": {
+    "ru": "Опиши задачу — Клод поможет: код, разбор, поиск.",
+    "en": "Describe your task — Claude will help: code, review, search."
+  },
+  "chat.greeting.noToken": {
+    "ru": "Сначала задай токен подписки в настройках.",
+    "en": "Set a subscription token in settings first."
+  },
+  "chat.greeting.openSettings": { "ru": "Открыть настройки", "en": "Open settings" },
+  "chat.greeting.quickHints": {
+    "ru": "Подсказки:",
+    "en": "Quick prompts:"
+  },
+  "chat.input.placeholder": {
+    "ru": "Напиши задачу… (Shift+Enter — перенос)",
+    "en": "Describe a task… (Shift+Enter for newline)"
+  },
+  "chat.input.send": { "ru": "Отправить", "en": "Send" },
+  "chat.input.stop": { "ru": "Стоп", "en": "Stop" },
+  "chat.busy": { "ru": "Клод думает…", "en": "Claude is thinking…" },
+  "chat.attachImage": { "ru": "Прикрепить изображение", "en": "Attach image" },
+  "chat.attachTree": { "ru": "Структура проекта", "en": "Project tree" },
+  "chat.voice": { "ru": "Голос", "en": "Voice" },
+  "chat.tools.using": { "ru": "Использую инструмент: {tool}", "en": "Using tool: {tool}" },
+  "chat.permission.allow": { "ru": "Разрешить", "en": "Allow" },
+  "chat.permission.deny": { "ru": "Запретить", "en": "Deny" },
+  "chat.permission.edit": { "ru": "Правка {file}", "en": "Edit {file}" },
+  "chat.permission.write": { "ru": "Создать {file}", "en": "Create {file}" },
+  "chat.permission.bash": { "ru": "Выполнить команду", "en": "Run command" },
+  "chat.permission.tool": { "ru": "Инструмент {tool}", "en": "Tool {tool}" },
+  "chat.message.user": { "ru": "Вы", "en": "You" },
+  "chat.message.assistant": { "ru": "Клод", "en": "Claude" },
+  "chat.cost.session": {
+    "ru": "сессия: ${cost} • токены: {tokens}",
+    "en": "session: ${cost} • tokens: {tokens}"
+  },
+  "chat.cost.today": { "ru": "сегодня: ${cost}", "en": "today: ${cost}" },
+  "chat.cost.total": { "ru": "всего: ${cost}", "en": "total: ${cost}" },
+  "chat.newSession": { "ru": "Новая сессия", "en": "New session" },
+  "chat.share": { "ru": "Поделиться", "en": "Share" },
+  "chat.export": { "ru": "Экспорт", "en": "Export" },
+  "chat.fork": { "ru": "Форк отсюда", "en": "Fork from here" },
+  "chat.toolPill": { "ru": "tool: {name}", "en": "tool: {name}" },
+
+  "sidebar.title": { "ru": "Сессии", "en": "Sessions" },
+  "sidebar.empty": {
+    "ru": "Сессий пока нет. Создай первую в основной панели.",
+    "en": "No sessions yet. Start one from the main panel."
+  },
+  "sidebar.newSession": { "ru": "Новая сессия", "en": "New session" },
+  "sidebar.openMain": { "ru": "Открыть Cockpit", "en": "Open Cockpit" },
+  "sidebar.rename": { "ru": "Переименовать", "en": "Rename" },
+  "sidebar.delete": { "ru": "Удалить", "en": "Delete" },
+  "sidebar.fork": { "ru": "Форк", "en": "Fork" },
+  "sidebar.deleteConfirm": {
+    "ru": "Удалить эту сессию? Действие необратимо.",
+    "en": "Delete this session? This cannot be undone."
+  },
+  "sidebar.search": { "ru": "Поиск сессий…", "en": "Search sessions…" },
+  "sidebar.ago.sec": { "ru": "{n}с", "en": "{n}s" },
+  "sidebar.ago.min": { "ru": "{n}м", "en": "{n}m" },
+  "sidebar.ago.hour": { "ru": "{n}ч", "en": "{n}h" },
+  "sidebar.ago.day": { "ru": "{n}д", "en": "{n}d" },
+
+  "settings.title": { "ru": "Cockpit · настройки", "en": "Cockpit · settings" },
+  "settings.search": { "ru": "Поиск настроек…", "en": "Search settings…" },
+  "settings.cat.account": { "ru": "Аккаунт", "en": "Account" },
+  "settings.cat.mobile": { "ru": "Cockpit Mobile", "en": "Cockpit Mobile" },
+  "settings.cat.appearance": { "ru": "Внешний вид", "en": "Appearance" },
+  "settings.cat.behavior": { "ru": "Поведение", "en": "Behavior" },
+  "settings.cat.security": { "ru": "Безопасность", "en": "Security" },
+  "settings.cat.tools": { "ru": "Внешние tools", "en": "External tools" },
+  "settings.cat.memory": { "ru": "Память", "en": "Memory" },
+  "settings.cat.mcp": { "ru": "MCP-серверы", "en": "MCP servers" },
+  "settings.cat.prompts": { "ru": "Шаблоны", "en": "Templates" },
+  "settings.cat.limits": { "ru": "Лимиты подписки", "en": "Subscription limits" },
+  "settings.cat.achievements": { "ru": "Achievements", "en": "Achievements" },
+
+  "settings.account.title": {
+    "ru": "Подключение Claude (подписка)",
+    "en": "Claude connection (subscription)"
+  },
+  "settings.account.tokenSet": { "ru": "токен задан", "en": "token set" },
+  "settings.account.tokenMissing": { "ru": "токен не задан", "en": "token missing" },
+  "settings.account.autoImport": { "ru": "🦈 Подхватить из Claude CLI", "en": "🦈 Auto-import from Claude CLI" },
+  "settings.account.autoImportTip": {
+    "ru": "Прочитать токен из системы (нужен установленный Claude CLI после setup-token)",
+    "en": "Read token from system (requires Claude CLI installed after setup-token)"
+  },
+  "settings.account.changeManual": { "ru": "Сменить вручную", "en": "Change manually" },
+  "settings.account.setManual": { "ru": "Вставить вручную", "en": "Enter manually" },
+  "settings.account.noCli": {
+    "ru": "Если нет CLI:",
+    "en": "No CLI yet:"
+  },
+  "settings.account.locale": { "ru": "Язык интерфейса", "en": "Interface language" },
+  "settings.account.localeAuto": {
+    "ru": "Авто (по языку VSCode)",
+    "en": "Auto (follow VSCode UI)"
+  },
+  "settings.account.localeRu": { "ru": "Русский", "en": "Russian" },
+  "settings.account.localeEn": { "ru": "Английский", "en": "English" },
+  "settings.account.costToday": { "ru": "Расход сегодня", "en": "Today's cost" },
+  "settings.account.costTotal": { "ru": "Всего", "en": "Total" },
+  "settings.account.resetCost": { "ru": "Сбросить", "en": "Reset" },
+
+  "settings.mobile.title": {
+    "ru": "Cockpit Mobile — пульт твоего AI с телефона",
+    "en": "Cockpit Mobile — your AI pilot from a phone"
+  },
+  "settings.mobile.paired": { "ru": "спарен", "en": "paired" },
+  "settings.mobile.unpaired": { "ru": "не спарен", "en": "unpaired" },
+  "settings.mobile.label": { "ru": "label:", "en": "label:" },
+  "settings.mobile.pairedAt": { "ru": "спарен {time}", "en": "paired {time}" },
+  "settings.mobile.openMiniapp": {
+    "ru": "Открой @CockpitMobileBot и жми «🦈 Открыть Cockpit Mobile»",
+    "en": "Open @CockpitMobileBot and tap \"🦈 Open Cockpit Mobile\""
+  },
+  "settings.mobile.unpair": { "ru": "Отвязать телефон", "en": "Unpair phone" },
+  "settings.mobile.step1": { "ru": "Нажми «Сгенерировать код» ↓.", "en": "Click \"Generate code\" ↓." },
+  "settings.mobile.step2": {
+    "ru": "Открой @CockpitMobileBot — миниапп откроется или отсканируй QR с экрана.",
+    "en": "Open @CockpitMobileBot — the mini-app opens or scan the QR on screen."
+  },
+  "settings.mobile.step3": {
+    "ru": "Если миниапп открыт руками — введи 8-символьный код в «Спарить ПК».",
+    "en": "If the miniapp is open manually — type the 8-char code into \"Pair PC\"."
+  },
+  "settings.mobile.generate": { "ru": "Сгенерировать код", "en": "Generate code" },
+  "settings.mobile.generating": { "ru": "генерирую…", "en": "generating…" },
+  "settings.mobile.codeLabel": { "ru": "Код для ввода в миниаппе:", "en": "Code for the miniapp:" },
+  "settings.mobile.codeTtl": { "ru": "Действует 5 минут, одноразовый.", "en": "Valid 5 minutes, single-use." },
+  "settings.mobile.qrUnavailable": { "ru": "QR недоступен", "en": "QR unavailable" },
+  "settings.mobile.qrAlt": { "ru": "QR для привязки", "en": "Pair QR" },
+  "settings.mobile.errorPrefix": { "ru": "Ошибка:", "en": "Error:" },
+  "settings.mobile.instance": { "ru": "instance_id:", "en": "instance_id:" },
+  "settings.mobile.waiting": { "ru": "жду…", "en": "waiting…" },
+  "settings.mobile.paireSuccess": { "ru": "Спарено ✓", "en": "Paired ✓" },
+
+  "settings.appearance.theme": { "ru": "Тема", "en": "Theme" },
+  "settings.appearance.fontScale": { "ru": "Размер шрифта", "en": "Font scale" },
+  "settings.appearance.customTheme": { "ru": "Кастомная тема", "en": "Custom theme" },
+
+  "settings.behavior.systemPrompt": { "ru": "Системный промпт", "en": "System prompt" },
+  "settings.behavior.systemPromptHint": {
+    "ru": "Передаётся в каждой сессии. Шаблоны выше.",
+    "en": "Sent on every session. Templates above."
+  },
+  "settings.behavior.maxTurns": { "ru": "Максимум ходов в сессии", "en": "Max turns per session" },
+  "settings.behavior.maxTurnsHint": { "ru": "0 = без лимита", "en": "0 = unlimited" },
+  "settings.behavior.autoApprove": { "ru": "Автоприём правок", "en": "Auto-approve edits" },
+  "settings.behavior.autoApprove.asking": { "ru": "Спрашивать всегда", "en": "Always ask" },
+  "settings.behavior.autoApprove.edits": { "ru": "Только правки файлов", "en": "Edits only" },
+  "settings.behavior.autoApprove.all": { "ru": "Всё подряд (опасно)", "en": "Everything (risky)" },
+  "settings.behavior.notify": { "ru": "Уведомление о готовности", "en": "Notify when done" },
+  "settings.behavior.pomodoro": { "ru": "Pomodoro-помодоро (минут)", "en": "Pomodoro (minutes)" },
+  "settings.behavior.companion": { "ru": "Компаньон-маскот", "en": "Companion mascot" },
+  "settings.behavior.autoContext": { "ru": "Авто-контекст", "en": "Auto-context" },
+  "settings.behavior.speculative": { "ru": "Speculative Haiku (предответ)", "en": "Speculative Haiku (pre-answer)" },
+
+  "settings.security.title": { "ru": "Безопасность", "en": "Security" },
+  "settings.security.allowedPaths": { "ru": "Разрешённые пути правок (glob)", "en": "Allowed edit paths (glob)" },
+  "settings.security.allowedPathsHint": {
+    "ru": "Пусто = всё разрешено. Через пробел.",
+    "en": "Empty = all allowed. Space-separated."
+  },
+  "settings.security.snapshotBeforeWrite": { "ru": "Снимок перед правкой", "en": "Snapshot before write" },
+  "settings.security.auditLog": { "ru": "Журнал аудита", "en": "Audit log" },
+  "settings.security.disallowBash": { "ru": "Запрещённые bash-команды", "en": "Disallowed bash commands" },
+  "settings.security.budgetDay": { "ru": "Бюджет на день ($)", "en": "Daily budget ($)" },
+  "settings.security.budgetSession": { "ru": "Бюджет на сессию ($)", "en": "Session budget ($)" },
+
+  "settings.tools.title": { "ru": "Внешние инструменты", "en": "External tools" },
+  "settings.tools.webSearch": { "ru": "Web Search", "en": "Web Search" },
+  "settings.tools.webFetch": { "ru": "Web Fetch", "en": "Web Fetch" },
+  "settings.tools.completionsEnabled": { "ru": "Inline completions", "en": "Inline completions" },
+  "settings.tools.completionsAuto": { "ru": "Авто-триггер", "en": "Auto trigger" },
+
+  "settings.memory.title": { "ru": "Память (CLAUDE.md)", "en": "Memory (CLAUDE.md)" },
+  "settings.memory.openWorkspace": { "ru": "Открыть workspace CLAUDE.md", "en": "Open workspace CLAUDE.md" },
+  "settings.memory.subagents": { "ru": "Сабагенты", "en": "Subagents" },
+
+  "settings.mcp.title": { "ru": "MCP-серверы", "en": "MCP servers" },
+  "settings.mcp.hint": {
+    "ru": "Один сервер на строку, формат: name=command [args…]",
+    "en": "One server per line: name=command [args…]"
+  },
+  "settings.mcp.placeholder": {
+    "ru": "github=npx -y @modelcontextprotocol/server-github",
+    "en": "github=npx -y @modelcontextprotocol/server-github"
+  },
+
+  "settings.prompts.title": { "ru": "Шаблоны промптов", "en": "Prompt templates" },
+  "settings.prompts.namePlaceholder": { "ru": "Имя шаблона", "en": "Template name" },
+  "settings.prompts.contentPlaceholder": { "ru": "Текст промпта…", "en": "Prompt text…" },
+  "settings.prompts.save": { "ru": "Сохранить шаблон", "en": "Save template" },
+  "settings.prompts.delete": { "ru": "Удалить", "en": "Delete" },
+
+  "settings.limits.title": { "ru": "Лимиты подписки", "en": "Subscription limits" },
+  "settings.limits.refresh": { "ru": "Обновить", "en": "Refresh" },
+  "settings.limits.resetIn": { "ru": "сброс через {time}", "en": "resets in {time}" },
+  "settings.limits.utilisation": { "ru": "использовано {percent}%", "en": "used {percent}%" },
+  "settings.limits.overage": { "ru": "перерасход", "en": "overage" },
+
+  "settings.ach.title": { "ru": "Достижения", "en": "Achievements" },
+  "settings.ach.locked": { "ru": "Заблокировано", "en": "Locked" }
+}

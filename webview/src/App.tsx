@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useVirtualizer } from '@tanstack/react-virtual'
+import { LocaleContext, type Locale } from './i18n'
 import type {
   PermissionDetail,
   FileEntry,
@@ -183,6 +184,7 @@ export function App() {
   const [mentionOpen, setMentionOpen] = useState(false)
   const [slashOpen, setSlashOpen] = useState(false)
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS)
+  const [locale, setLocale] = useState<Locale>('en')
   const [helpOpen, setHelpOpen] = useState(false)
   const [attachments, setAttachments] = useState<ImageAttachment[]>([])
   const [dragOver, setDragOver] = useState(false)
@@ -209,6 +211,7 @@ export function App() {
           setCostToday(msg.payload.costToday)
           setCostTotal(msg.payload.costTotal)
           setSettings(msg.payload.settings ?? DEFAULT_SETTINGS)
+          if (msg.payload.locale) setLocale(msg.payload.locale)
           break
         case 'cost':
           setCostToday(msg.payload.today)
@@ -672,6 +675,7 @@ export function App() {
   }
 
   return (
+    <LocaleContext.Provider value={locale}>
     <div
       className="relative flex h-full flex-col overflow-hidden bg-background text-foreground"
       onDragOver={(e) => {
@@ -1067,6 +1071,7 @@ export function App() {
       </footer>
       {helpOpen && <HelpPanel onClose={() => setHelpOpen(false)} />}
     </div>
+    </LocaleContext.Provider>
   )
 }
 
