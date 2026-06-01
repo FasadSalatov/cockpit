@@ -7,7 +7,7 @@ import type {
 import { DEFAULT_SETTINGS } from '../../src/protocol'
 import { onMessage, post } from './vscode'
 import { Px } from './components/px'
-import { LocaleContext, useT, type Locale } from './i18n'
+import { LocaleContext, translate as translateInline, useT, type Locale } from './i18n'
 import {
   ACHIEVEMENTS_META,
   CUSTOM_THEME_FIELDS,
@@ -36,18 +36,18 @@ type CategoryId =
   | 'limits'
   | 'achievements'
 
-const CATEGORIES: { id: CategoryId; label: string; icon: string }[] = [
-  { id: 'account', label: 'Аккаунт', icon: 'lock' },
-  { id: 'mobile', label: 'Cockpit Mobile', icon: 'smartphone' },
-  { id: 'appearance', label: 'Внешний вид', icon: 'image' },
-  { id: 'behavior', label: 'Поведение', icon: 'android' },
-  { id: 'security', label: 'Безопасность', icon: 'check' },
-  { id: 'tools', label: 'Внешние tools', icon: 'search' },
-  { id: 'memory', label: 'Память', icon: 'book' },
-  { id: 'mcp', label: 'MCP-серверы', icon: 'command' },
-  { id: 'prompts', label: 'Шаблоны', icon: 'file-multiple' },
-  { id: 'limits', label: 'Лимиты подписки', icon: 'sparkle' },
-  { id: 'achievements', label: 'Achievements', icon: 'sparkles' },
+const CATEGORY_KEYS: { id: CategoryId; key: string; icon: string }[] = [
+  { id: 'account', key: 'settings.cat.account', icon: 'lock' },
+  { id: 'mobile', key: 'settings.cat.mobile', icon: 'smartphone' },
+  { id: 'appearance', key: 'settings.cat.appearance', icon: 'image' },
+  { id: 'behavior', key: 'settings.cat.behavior', icon: 'android' },
+  { id: 'security', key: 'settings.cat.security', icon: 'check' },
+  { id: 'tools', key: 'settings.cat.tools', icon: 'search' },
+  { id: 'memory', key: 'settings.cat.memory', icon: 'book' },
+  { id: 'mcp', key: 'settings.cat.mcp', icon: 'command' },
+  { id: 'prompts', key: 'settings.cat.prompts', icon: 'file-multiple' },
+  { id: 'limits', key: 'settings.cat.limits', icon: 'sparkle' },
+  { id: 'achievements', key: 'settings.cat.achievements', icon: 'sparkles' },
 ]
 
 type BridgeStatus = {
@@ -100,6 +100,7 @@ export function SettingsApp() {
           break
         case 'settingsUpdated':
           setSettings(m.payload.settings)
+          if (m.payload.locale) setLocale(m.payload.locale)
           break
         case 'bridgeStatus':
           setBridgeStatus(m.payload)
@@ -201,11 +202,19 @@ export function SettingsApp() {
   const update = (patch: Partial<Settings>) =>
     post({ type: 'updateSettings', payload: { settings: patch } })
 
+  const tr = (key: string) =>
+    (CATEGORY_KEYS.find((c) => c.key === key)?.key && key) ||
+    key /* satisfies TS that we use CATEGORY_KEYS */
+  void tr
+  const categoriesLocalized = useMemo(
+    () => CATEGORY_KEYS.map((c) => ({ ...c, label: translateInline(c.key, locale) })),
+    [locale],
+  )
   const filteredCategories = useMemo(() => {
-    if (!search.trim()) return CATEGORIES
+    if (!search.trim()) return categoriesLocalized
     const q = search.toLowerCase()
-    return CATEGORIES.filter((c) => c.label.toLowerCase().includes(q))
-  }, [search])
+    return categoriesLocalized.filter((c) => c.label.toLowerCase().includes(q))
+  }, [search, categoriesLocalized])
 
   return (
     <LocaleContext.Provider value={locale}>

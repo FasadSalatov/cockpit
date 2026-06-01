@@ -724,7 +724,7 @@ export function activate(context: vscode.ExtensionContext) {
     const cur = getSettings(context)
     const next: Settings = { ...cur, completionsEnabled: !cur.completionsEnabled }
     await context.globalState.update(SETTINGS_KEY, next)
-    postToAll({ type: 'settingsUpdated', payload: { settings: next } })
+    postToAll({ type: 'settingsUpdated', payload: { settings: next, locale: resolveLocale(next.locale) } })
     vscode.window.showInformationMessage(
       `Cockpit completions: ${next.completionsEnabled ? 'ON' : 'OFF'}`
     )
@@ -990,7 +990,7 @@ async function handleMessage(
     case 'updateSettings': {
       const next: Settings = { ...getSettings(context), ...msg.payload.settings }
       await context.globalState.update(SETTINGS_KEY, next)
-      postToAll({ type: 'settingsUpdated', payload: { settings: next } })
+      postToAll({ type: 'settingsUpdated', payload: { settings: next, locale: resolveLocale(next.locale) } })
       break
     }
     case 'resetCost':
